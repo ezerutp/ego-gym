@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,11 +8,15 @@ import { getSettings } from '@/db/settings';
 import { countMembersByStatus } from '@/features/members/db/members';
 import { countMembershipAlerts } from '@/features/memberships/db/subscriptions';
 import { countDebts, getTodayPayments } from '@/features/payments/db/payments';
+import { MemberAlertRow } from '@/features/alerts/components/MemberAlertRow';
+import { attentionCount, computeAttention } from '@/features/alerts/lib/attention';
 import { getTodaySummary } from '@/features/store/db/sales';
 import { addDays, money, todayIso } from '@/lib/format';
 import { useIsWide } from '@/lib/layout';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
+
+const HIGHLIGHTS = 5;
 
 export default function HomeScreen() {
   const styles = useStyles();
@@ -27,19 +32,38 @@ export default function HomeScreen() {
       countMembershipAlerts(db, day, addDays(day, settings.membershipWarningDays)),
       countDebts(db),
     ]);
-    return { settings, today, payments, members, memberships, debts };
+    const attention = await computeAttention(db, settings);
+    return { settings, today, payments, members, memberships, debts, attention };
   });
 
   if (!data) return <SafeAreaView style={styles.safe} />;
-  const { settings, today, payments, members, memberships, debts } = data;
+  const { settings, today, payments, members, memberships, debts, attention } = data;
+  const pending = attentionCount(attention);
+  const highlights = [
+    ...attention.expiring.map((m) => ({ m, kind: 'expiring' as const })),
+    ...attention.debts.map((m) => ({ m, kind: 'debt' as const })),
+    ...attention.expired.map((m) => ({ m, kind: 'expired' as const })),
+  ].slice(0, HIGHLIGHTS);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={[styles.content, wide && styles.contentWide]} showsVerticalScrollIndicator={false}>
-        <Text style={font.small}>{greeting()}</Text>
-        <Text style={font.title} numberOfLines={1}>
-          {settings.storeName}
-        </Text>
+        <View style={styles.header}>
+          <View style={{ flex: 1 }}>
+            <Text style={font.small}>{greeting()}</Text>
+            <Text style={font.title} numberOfLines={1}>
+              {settings.storeName}
+            </Text>
+          </View>
+          <Pressable onPress={() => router.push('/notifications')} style={styles.bell} hitSlop={8}>
+            <Ionicons name="notifications-outline" size={24} color={colors.ink} />
+            {pending > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{pending > 99 ? '99+' : pending}</Text>
+              </View>
+            )}
+          </Pressable>
+        </View>
 
         <SectionTitle title="Accesos rápidos" />
         <View style={styles.actions}>
@@ -80,6 +104,22 @@ export default function HomeScreen() {
             </Text>
           </Card>
         </View>
+
+        <SectionTitle title="Requiere atención" action={pending > 0 ? 'Ver todo' : undefined} onAction={() => router.push('/notifications')} />
+        {highlights.length > 0 ? (
+          <View style={{ gap: spacing.sm }}>
+            {highlights.map(({ m, kind }) => (
+              <MemberAlertRow key={`${kind}-${m.id}`} member={m} kind={kind} gymName={settings.storeName} warningDays={settings.membershipWarningDays} />
+            ))}
+          </View>
+        ) : (
+          <Card style={styles.allGood}>
+            <IconCircle icon="checkmark-done" color={colors.primary} bg={colors.primarySoft} />
+            <Text style={[font.body, { flex: 1 }]}>
+              {pending > 0 ? 'Los clientes están al día. Revisa las alertas de la tienda.' : 'Todo al día: sin membresías por vencer ni deudas.'}
+            </Text>
+          </Card>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -126,6 +166,22 @@ const useStyles = makeStyles(({ colors, shadow }) =>
     },
     actionLabel: { fontSize: 14, fontWeight: '700', color: colors.ink, textAlign: 'center' },
     soon: { fontSize: 11, fontWeight: '600', color: colors.muted },
+    header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    bell: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', ...shadow },
+    badge: {
+      position: 'absolute',
+      top: -2,
+      right: -2,
+      minWidth: 20,
+      height: 20,
+      borderRadius: 10,
+      paddingHorizontal: 5,
+      backgroundColor: colors.danger,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    badgeText: { color: colors.white, fontSize: 11, fontWeight: '800' },
+    allGood: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
     tile: { flexGrow: 1, flexBasis: 280, gap: spacing.sm },
   }),
