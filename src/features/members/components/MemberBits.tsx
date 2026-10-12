@@ -5,6 +5,7 @@ import { Pill } from '@/components/ui';
 import { initials } from '@/features/auth/components/UserAvatar';
 import { fullName, STATUS_LABELS, type Member, type MemberStatus } from '@/features/members/db/members';
 import { membershipState } from '@/features/memberships/lib/status';
+import { money } from '@/lib/format';
 import { makeStyles, spacing, useTheme } from '@/theme';
 
 const STATUS_TONES = { active: 'success', prospect: 'info', inactive: 'neutral' } as const;
@@ -25,7 +26,7 @@ export function MemberAvatar({ member, size = 48 }: { member: Pick<Member, 'firs
 }
 
 type RowProps = {
-  member: Member & { membership_end?: string | null };
+  member: Member & { membership_end?: string | null; debt?: number };
   /** When given, the row shows the membership state instead of the DNI and phone. */
   warningDays?: number;
   selected?: boolean;
@@ -37,8 +38,10 @@ export function MemberRow({ member, warningDays, selected, onPress }: RowProps) 
   const { colors, font } = useTheme();
   const contact = [member.dni && `DNI ${member.dni}`, member.phone].filter(Boolean).join(' · ');
   const membership = warningDays != null && member.status === 'active' ? membershipState(member.membership_end ?? null, warningDays) : null;
-  const detail = membership ? membership.detail : contact;
-  const detailColor = membership?.kind === 'expired' ? colors.danger : membership?.kind === 'expiring' ? colors.warning : undefined;
+  const owes = (member.debt ?? 0) > 0;
+  const base = membership ? membership.detail : contact;
+  const detail = owes ? `Debe ${money(member.debt!)}${base ? ` · ${base}` : ''}` : base;
+  const detailColor = owes || membership?.kind === 'expired' ? colors.danger : membership?.kind === 'expiring' ? colors.warning : undefined;
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.row, selected && styles.rowSelected, pressed && { opacity: 0.75 }]}>
       <MemberAvatar member={member} />
