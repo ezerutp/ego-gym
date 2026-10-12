@@ -9,12 +9,15 @@ import { captureRef } from 'react-native-view-shot';
 
 import { lightTheme, radius, spacing, type Theme } from '@/theme';
 
+export async function captureViewAsImage(ref: RefObject<View | null>) {
+  const path = await captureRef(ref, { format: 'png', quality: 1, result: 'tmpfile' });
+  return path.startsWith('file://') ? path : `file://${path}`;
+}
+
 /** Captures a receipt view as a PNG and opens the share sheet (WhatsApp is usually the first option). */
 export async function shareViewAsImage(ref: RefObject<View | null>, dialogTitle: string) {
   if (!(await Sharing.isAvailableAsync())) return false;
-  const path = await captureRef(ref, { format: 'png', quality: 1, result: 'tmpfile' });
-  const uri = path.startsWith('file://') ? path : `file://${path}`;
-  await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle });
+  await Sharing.shareAsync(await captureViewAsImage(ref), { mimeType: 'image/png', dialogTitle });
   return true;
 }
 
