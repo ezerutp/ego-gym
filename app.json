@@ -64,7 +64,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#0B7A5C"
         }
-      ]
+      ],
+      "expo-background-task"
     ],
     "scheme": "egogym",
     "experiments": {
