@@ -31,6 +31,7 @@ export type Settings = {
   templateExpiring: string;
   templateExpired: string;
   templateDebt: string;
+  lastBackupAt: string;
   productSources: ProductSourceId[];
 };
 
@@ -57,6 +58,7 @@ export const DEFAULT_SETTINGS: Settings = {
   adminPhone: '',
   templateExpiring: 'Hola {nombre}, te recordamos que tu membresía en {gimnasio} vence el {fecha}. ¡Te esperamos para renovarla! 💪',
   templateExpired: 'Hola {nombre}, tu membresía en {gimnasio} venció el {fecha}. ¡Te esperamos para renovarla y seguir entrenando! 💪',
+  lastBackupAt: '',
   templateDebt: 'Hola {nombre}, te recordamos que tienes un saldo pendiente de {monto} en {gimnasio}. Puedes acercarte a recepción para regularizarlo. ¡Gracias!',
   productSources: PRODUCT_SOURCES.map((s) => s.id),
 };
