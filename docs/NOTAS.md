@@ -2,6 +2,14 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-12 — Fase 2
+
+- **DNI único pero opcional.** El índice `idx_members_dni` es parcial (`WHERE dni IS NOT NULL`) y los campos opcionales vacíos se guardan como `NULL`, así varios prospectos pueden quedar sin DNI. Además se valida antes de guardar, para mostrar a quién pertenece un DNI repetido.
+- **Fotos de clientes.** La cámara y la galería devuelven archivos en el caché, que Android puede limpiar. Se copian a `documents/member-photos/` al guardar (`persistMemberPhoto`).
+- **WhatsApp.** Se abre `https://wa.me/<número>`. Un celular de 9 dígitos se completa con el código de Perú (51); si el número ya trae código, se usa tal cual.
+- **Dos columnas en tablet.** La lista y la ficha conviven en la pestaña Clientes. La ficha (`MemberDetail`) es un componente reutilizado también en la ruta `member/[id]` del teléfono, y se recarga al volver del formulario porque usa `useFocusQuery`.
+- **Prospecto a cliente.** Por ahora, con "Marcar como activo". Cuando exista la inscripción en planes (fase 3), inscribir a un prospecto lo pasará a activo.
+
 ## 2026-10-12 — Fase 1
 
 - **PIN con hash.** Se guarda `SHA-256(sal:PIN)` con `expo-crypto` y una sal aleatoria por usuario, nunca el PIN en claro. Con 4 dígitos el hash no impide que alguien con acceso al archivo de la base pruebe las 10 000 combinaciones. Lo que se busca es que el PIN no se pueda leer directamente; la protección real es la espera tras 5 intentos fallidos en la pantalla de bloqueo.
