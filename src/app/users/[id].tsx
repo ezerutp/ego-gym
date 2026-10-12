@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Button, Card, Field } from '@/components/ui';
+import { AdminOnly } from '@/features/auth/components/AdminOnly';
 import { createUser, getUser, PIN_LENGTH, ROLE_LABELS, setPin, updateUser, wouldRemoveLastAdmin, type Role, type User } from '@/features/auth/db/users';
 import { session } from '@/features/auth/lib/session';
 import { useFocusQuery } from '@/lib/useFocusQuery';
@@ -15,6 +16,14 @@ const ROLES: { role: Role; hint: string }[] = [
 ];
 
 export default function UserScreen() {
+  return (
+    <AdminOnly>
+      <UserScreenContent />
+    </AdminOnly>
+  );
+}
+
+function UserScreenContent() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const isNew = id === 'new';
   const { data } = useFocusQuery(async (db) => (isNew ? null : await getUser(db, Number(id))), [id]);

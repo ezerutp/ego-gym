@@ -4,6 +4,7 @@ import { Alert, KeyboardAvoidingView, ScrollView, StyleSheet, Switch, Text, View
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Card, Field, IconCircle, Pill, Stepper, type IconName } from '@/components/ui';
+import { AdminOnly } from '@/features/auth/components/AdminOnly';
 import { getSettings, saveSettings, type Settings } from '@/db/settings';
 import { PRODUCT_SOURCES } from '@/features/store/lib/productLookup';
 import { notificationsAvailable, rescheduleAlerts, sendTestNotification, setupNotifications } from '@/features/store/lib/notifications';
@@ -11,6 +12,14 @@ import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, spacing, useTheme } from '@/theme';
 
 export default function SettingsScreen() {
+  return (
+    <AdminOnly>
+      <SettingsScreenContent />
+    </AdminOnly>
+  );
+}
+
+function SettingsScreenContent() {
   const styles = useStyles();
   const { data, reload } = useFocusQuery(async (db) => {
     const [settings, stats] = await Promise.all([

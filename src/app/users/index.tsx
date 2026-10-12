@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Card, Pill } from '@/components/ui';
+import { AdminOnly } from '@/features/auth/components/AdminOnly';
 import { UserAvatar } from '@/features/auth/components/UserAvatar';
 import { listUsers, ROLE_LABELS } from '@/features/auth/db/users';
 import { useSession } from '@/features/auth/lib/session';
@@ -10,6 +11,14 @@ import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, spacing, useTheme } from '@/theme';
 
 export default function UsersScreen() {
+  return (
+    <AdminOnly>
+      <UsersScreenContent />
+    </AdminOnly>
+  );
+}
+
+function UsersScreenContent() {
   const styles = useStyles();
   const { colors, font } = useTheme();
   const me = useSession();
