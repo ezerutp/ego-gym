@@ -1,16 +1,24 @@
+import type { Settings } from '@/db/settings';
 import type { Member } from '@/features/members/db/members';
 import { formatDay, money } from '@/lib/format';
 
 type Who = Pick<Member, 'first_name' | 'last_name'>;
 
-export function expiringMessage(member: Who, endDate: string, gymName: string) {
-  return `Hola ${member.first_name}, te recordamos que tu membresía en ${gymName} vence el ${formatDay(endDate)}. ¡Te esperamos para renovarla! 💪`;
+export const TEMPLATE_VARIABLES = ['{nombre}', '{fecha}', '{monto}', '{gimnasio}'];
+
+/** Replaces the {variables} the admin can use in the templates; unknown ones stay as written. */
+export function fillTemplate(template: string, vars: Record<string, string>) {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) => vars[key] ?? match);
 }
 
-export function expiredMessage(member: Who, endDate: string, gymName: string) {
-  return `Hola ${member.first_name}, tu membresía en ${gymName} venció el ${formatDay(endDate)}. ¡Te esperamos para renovarla y seguir entrenando! 💪`;
+export function expiringMessage(member: Who, endDate: string, settings: Settings) {
+  return fillTemplate(settings.templateExpiring, { nombre: member.first_name, fecha: formatDay(endDate), gimnasio: settings.storeName });
 }
 
-export function debtMessage(member: Who, debt: number, gymName: string) {
-  return `Hola ${member.first_name}, te recordamos que tienes un saldo pendiente de ${money(debt)} en ${gymName}. Puedes acercarte a recepción para regularizarlo. ¡Gracias!`;
+export function expiredMessage(member: Who, endDate: string, settings: Settings) {
+  return fillTemplate(settings.templateExpired, { nombre: member.first_name, fecha: formatDay(endDate), gimnasio: settings.storeName });
+}
+
+export function debtMessage(member: Who, debt: number, settings: Settings) {
+  return fillTemplate(settings.templateDebt, { nombre: member.first_name, monto: money(debt), gimnasio: settings.storeName });
 }

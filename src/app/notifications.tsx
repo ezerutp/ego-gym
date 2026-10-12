@@ -36,7 +36,7 @@ export default function NotificationsScreen() {
         <SectionTitle title={`${title} (${members.length})`} />
         <View style={{ gap: spacing.sm }}>
           {members.map((m) => (
-            <MemberAlertRow key={m.id} member={m} kind={kind} gymName={settings.storeName} warningDays={settings.membershipWarningDays} />
+            <MemberAlertRow key={m.id} member={m} kind={kind} settings={settings} />
           ))}
         </View>
       </>

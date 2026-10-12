@@ -109,7 +109,7 @@ export default function HomeScreen() {
         {highlights.length > 0 ? (
           <View style={{ gap: spacing.sm }}>
             {highlights.map(({ m, kind }) => (
-              <MemberAlertRow key={`${kind}-${m.id}`} member={m} kind={kind} gymName={settings.storeName} warningDays={settings.membershipWarningDays} />
+              <MemberAlertRow key={`${kind}-${m.id}`} member={m} kind={kind} settings={settings} />
             ))}
           </View>
         ) : (
