@@ -8,13 +8,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DateField } from '@/components/DateField';
 import { PhotoPicker } from '@/components/PhotoPicker';
 import { Button, Card, Field, Pill, ProductThumb, SectionTitle, Stepper } from '@/components/ui';
-import { adjustStock, deleteProduct, getProduct, listMovements, updateProduct } from '@/db/products';
+import { adjustStock, deleteProduct, getProduct, listMovements, updateProduct } from '@/features/store/db/products';
 import { getSettings } from '@/db/settings';
-import { alertsForProduct, minStockFor } from '@/lib/alerts';
-import { cart } from '@/lib/cart';
+import { alertsForProduct, minStockFor } from '@/features/store/lib/alerts';
+import { cart } from '@/features/store/lib/cart';
 import { describeExpiry, formatDateTime, formatDay, money, parseMoney } from '@/lib/format';
-import { notifyLowStock, rescheduleAlerts } from '@/lib/notifications';
-import { persistLocalImage } from '@/lib/productLookup';
+import { notifyLowStock, rescheduleAlerts } from '@/features/store/lib/notifications';
+import { persistLocalImage } from '@/features/store/lib/productLookup';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 

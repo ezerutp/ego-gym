@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
-import type { Product } from '@/db/products';
-import type { CartLine } from '@/db/sales';
+import type { Product } from '@/features/store/db/products';
+import type { CartLine } from '@/features/store/db/sales';
 
 let lines: CartLine[] = [];
 const listeners = new Set<() => void>();

@@ -4,11 +4,11 @@ import { useMemo, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ProductRow } from '@/components/ProductRow';
+import { ProductRow } from '@/features/store/components/ProductRow';
 import { Button, EmptyState } from '@/components/ui';
-import { listProducts } from '@/db/products';
+import { listProducts } from '@/features/store/db/products';
 import { getSettings } from '@/db/settings';
-import { alertsForProduct } from '@/lib/alerts';
+import { alertsForProduct } from '@/features/store/lib/alerts';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 

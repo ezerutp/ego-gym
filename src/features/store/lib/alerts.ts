@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import type { Product } from '@/db/products';
+import type { Product } from '@/features/store/db/products';
 import type { Settings } from '@/db/settings';
 import { daysUntil } from '@/lib/format';
 

@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import type { ProductSourceId } from '@/lib/productLookup';
+import type { ProductSourceId } from '@/features/store/lib/productLookup';
 
 export type Product = {
   id: number;

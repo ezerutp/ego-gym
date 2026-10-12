@@ -9,11 +9,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DateField } from '@/components/DateField';
 import { PhotoPicker } from '@/components/PhotoPicker';
 import { Button, Card, Field, IconCircle, Pill, ProductThumb, Stepper } from '@/components/ui';
-import { adjustStock, createProduct, getProductByBarcode, updateProduct, type Product } from '@/db/products';
+import { adjustStock, createProduct, getProductByBarcode, updateProduct, type Product } from '@/features/store/db/products';
 import { getSettings } from '@/db/settings';
 import { money, parseMoney } from '@/lib/format';
-import { rescheduleAlerts } from '@/lib/notifications';
-import { downloadProductImage, lookupBarcode, persistLocalImage, type RemoteProduct } from '@/lib/productLookup';
+import { rescheduleAlerts } from '@/features/store/lib/notifications';
+import { downloadProductImage, lookupBarcode, persistLocalImage, type RemoteProduct } from '@/features/store/lib/productLookup';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
 type Step = { kind: 'loading' } | { kind: 'existing'; product: Product } | { kind: 'found'; remote: RemoteProduct } | { kind: 'form' };

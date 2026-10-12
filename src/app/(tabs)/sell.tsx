@@ -6,11 +6,11 @@ import { Alert, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, T
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Card, EmptyState, Field, ProductThumb, SectionTitle, Stepper } from '@/components/ui';
-import { listProducts } from '@/db/products';
-import { createSale } from '@/db/sales';
-import { cart, cartCount, cartTotal, useCart } from '@/lib/cart';
+import { listProducts } from '@/features/store/db/products';
+import { createSale } from '@/features/store/db/sales';
+import { cart, cartCount, cartTotal, useCart } from '@/features/store/lib/cart';
 import { money, parseMoney } from '@/lib/format';
-import { notifyLowStock, rescheduleAlerts } from '@/lib/notifications';
+import { notifyLowStock, rescheduleAlerts } from '@/features/store/lib/notifications';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 

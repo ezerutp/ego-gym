@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
 
 import { Button } from '@/components/ui';
-import { getSale } from '@/db/sales';
+import { getSale } from '@/features/store/db/sales';
 import { getSettings } from '@/db/settings';
 import { formatDateTime, money, receiptNumber } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';

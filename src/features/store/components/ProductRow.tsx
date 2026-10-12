@@ -2,9 +2,9 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Pill, ProductThumb } from '@/components/ui';
-import type { Product } from '@/db/products';
+import type { Product } from '@/features/store/db/products';
 import type { Settings } from '@/db/settings';
-import { alertsForProduct } from '@/lib/alerts';
+import { alertsForProduct } from '@/features/store/lib/alerts';
 import { describeExpiry, money } from '@/lib/format';
 import { makeStyles, spacing, useTheme } from '@/theme';
 

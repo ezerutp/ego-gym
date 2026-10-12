@@ -6,7 +6,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { IconName } from '@/components/ui';
-import { cartCount, useCart } from '@/lib/cart';
+import { cartCount, useCart } from '@/features/store/lib/cart';
 import { makeStyles, useTheme } from '@/theme';
 
 const TABS: Record<string, { label: string; icon: IconName; iconActive: IconName }> = {

@@ -4,9 +4,9 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card, EmptyState, IconCircle, SectionTitle, type IconName } from '@/components/ui';
-import { getTodaySummary, listRecentSales } from '@/db/sales';
+import { getTodaySummary, listRecentSales } from '@/features/store/db/sales';
 import { getSettings } from '@/db/settings';
-import { computeAlerts, groupAlerts } from '@/lib/alerts';
+import { computeAlerts, groupAlerts } from '@/features/store/lib/alerts';
 import { formatDateTime, money, receiptNumber } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';

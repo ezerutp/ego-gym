@@ -5,8 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Card, Field, IconCircle, Pill, Stepper, type IconName } from '@/components/ui';
 import { getSettings, saveSettings, type Settings } from '@/db/settings';
-import { PRODUCT_SOURCES } from '@/lib/productLookup';
-import { notificationsAvailable, rescheduleAlerts, sendTestNotification, setupNotifications } from '@/lib/notifications';
+import { PRODUCT_SOURCES } from '@/features/store/lib/productLookup';
+import { notificationsAvailable, rescheduleAlerts, sendTestNotification, setupNotifications } from '@/features/store/lib/notifications';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, spacing, useTheme } from '@/theme';
 

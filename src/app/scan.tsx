@@ -8,8 +8,8 @@ import { Alert, Animated, Easing, KeyboardAvoidingView, Pressable, StyleSheet, T
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, ProductThumb } from '@/components/ui';
-import { getProductByBarcode } from '@/db/products';
-import { cart, cartCount, cartTotal, useCart } from '@/lib/cart';
+import { getProductByBarcode } from '@/features/store/db/products';
+import { cart, cartCount, cartTotal, useCart } from '@/features/store/lib/cart';
 import { money } from '@/lib/format';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 

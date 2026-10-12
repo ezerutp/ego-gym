@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { PRODUCT_SOURCES, type ProductSourceId } from '@/lib/productLookup';
+import { PRODUCT_SOURCES, type ProductSourceId } from '@/features/store/lib/productLookup';
 
 export type Settings = {
   storeName: string;

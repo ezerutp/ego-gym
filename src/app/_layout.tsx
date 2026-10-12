@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { DATABASE_NAME, migrateDb } from '@/db/schema';
-import { onNotificationTap, rescheduleAlerts, setupNotifications } from '@/lib/notifications';
+import { onNotificationTap, rescheduleAlerts, setupNotifications } from '@/features/store/lib/notifications';
 import { useTheme } from '@/theme';
 
 export default function RootLayout() {

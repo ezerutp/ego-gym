@@ -2,11 +2,11 @@ import { router } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ProductRow } from '@/components/ProductRow';
+import { ProductRow } from '@/features/store/components/ProductRow';
 import { Card, EmptyState, IconCircle, type IconName } from '@/components/ui';
 import type { Settings } from '@/db/settings';
 import { getSettings } from '@/db/settings';
-import { computeAlerts, groupAlerts, type StockAlert } from '@/lib/alerts';
+import { computeAlerts, groupAlerts, type StockAlert } from '@/features/store/lib/alerts';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, spacing, useTheme } from '@/theme';
 

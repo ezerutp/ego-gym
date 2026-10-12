@@ -3,9 +3,9 @@ import type * as NotificationsModule from 'expo-notifications';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { Platform } from 'react-native';
 
-import type { Product } from '@/db/products';
+import type { Product } from '@/features/store/db/products';
 import { getSettings } from '@/db/settings';
-import { computeAlerts, groupAlerts, minStockFor } from '@/lib/alerts';
+import { computeAlerts, groupAlerts, minStockFor } from '@/features/store/lib/alerts';
 import { parseIsoDay } from '@/lib/format';
 
 const CHANNEL_ID = 'alertas';
