@@ -5,7 +5,7 @@ import { useRef, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BusinessHeader, captureViewAsImage, Dashed, MetaRow, paper, shareViewAsImage } from '@/components/ReceiptPaper';
+import { BusinessHeader, captureViewToAppFile, Dashed, MetaRow, paper, shareViewAsImage } from '@/components/ReceiptPaper';
 import { Button } from '@/components/ui';
 import { SendToAdminButton } from '@/features/integrations/components/SendToAdminButton';
 import { sendReceiptImage } from '@/features/integrations/lib/deliver';
@@ -99,7 +99,7 @@ export default function ReceiptScreen() {
         <Button title="Compartir por WhatsApp" icon="logo-whatsapp" loading={sharing} onPress={share} style={{ backgroundColor: colors.whatsapp, borderColor: colors.whatsapp }} />
         <SendToAdminButton
           onSend={async () =>
-            sendReceiptImage(db, 'sale', sale.id, receiptNumber(sale.id), await captureViewAsImage(ticketRef), `🛒 ${receiptNumber(sale.id)} · ${money(sale.total)}`)
+            sendReceiptImage(db, 'sale', sale.id, receiptNumber(sale.id), await captureViewToAppFile(ticketRef, receiptNumber(sale.id)), `🛒 ${receiptNumber(sale.id)} · ${money(sale.total)}`)
           }
         />
         {fresh && (

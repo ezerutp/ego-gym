@@ -1,3 +1,4 @@
+import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import type { RefObject } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -12,6 +13,16 @@ import { lightTheme, radius, spacing, type Theme } from '@/theme';
 export async function captureViewAsImage(ref: RefObject<View | null>) {
   const path = await captureRef(ref, { format: 'png', quality: 1, result: 'tmpfile' });
   return path.startsWith('file://') ? path : `file://${path}`;
+}
+
+/** Like `captureViewAsImage`, but written inside the app's cache so expo-file-system can read it (needed to upload it). */
+export async function captureViewToAppFile(ref: RefObject<View | null>, name: string) {
+  const base64 = await captureRef(ref, { format: 'png', quality: 1, result: 'base64' });
+  const file = new File(Paths.cache, `${name}.png`);
+  if (file.exists) file.delete();
+  file.create();
+  file.write(base64, { encoding: 'base64' });
+  return file.uri;
 }
 
 /** Captures a receipt view as a PNG and opens the share sheet (WhatsApp is usually the first option). */

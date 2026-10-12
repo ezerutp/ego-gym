@@ -5,7 +5,7 @@ import { useRef, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BusinessHeader, captureViewAsImage, Dashed, MetaRow, paper, shareViewAsImage } from '@/components/ReceiptPaper';
+import { BusinessHeader, captureViewToAppFile, Dashed, MetaRow, paper, shareViewAsImage } from '@/components/ReceiptPaper';
 import { Button } from '@/components/ui';
 import { getSettings } from '@/db/settings';
 import { SendToAdminButton } from '@/features/integrations/components/SendToAdminButton';
@@ -110,7 +110,7 @@ export default function PaymentReceiptScreen() {
         <SendToAdminButton
           onSend={async () => {
             const caption = `🧾 ${number} · ${r.member_name} · ${money(r.amount)} (${PAYMENT_METHODS[r.method]})${r.due_after > 0 ? ` · Pendiente ${money(r.due_after)}` : ''}`;
-            return sendReceiptImage(db, 'receipt', r.id, number, await captureViewAsImage(ticketRef), caption);
+            return sendReceiptImage(db, 'receipt', r.id, number, await captureViewToAppFile(ticketRef, number), caption);
           }}
         />
       </View>
