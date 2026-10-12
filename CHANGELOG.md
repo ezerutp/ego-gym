@@ -2,6 +2,17 @@
 
 Cambios visibles de la app por etapa. Durante una fase, los cambios se acumulan en "Sin publicar" y pasan a la sección de la fase cuando esta se cierra.
 
+## Fase 2 — Clientes y prospectos (2026-10-12)
+
+### Agregado
+
+- Pestaña Clientes con búsqueda por nombre, DNI o celular, y filtros Todos, Activos, Prospectos e Inactivos con sus totales.
+- Registro y edición de clientes con foto (cámara o galería), DNI, celular, fecha de nacimiento, contacto de emergencia, notas, estado y "¿Cómo nos conoció?".
+- Ficha del cliente con su edad, sus datos y botones para escribirle por WhatsApp, llamarlo o editarlo. Los prospectos tienen un botón "Marcar como activo".
+- En tablet, la lista y la ficha se ven lado a lado.
+- El Inicio muestra los clientes activos y los prospectos, y el acceso "Nuevo cliente" ya funciona.
+- Solo el administrador puede eliminar clientes.
+
 ## Fase 1 — Usuarios y permisos (2026-10-12)
 
 ### Agregado

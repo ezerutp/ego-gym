@@ -49,15 +49,17 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [x] Pantalla Usuarios (solo admin): crear, editar, desactivar y cambiar PIN, siempre con al menos un admin activo
 - [x] Registrar quién hizo cada venta (`user_id` en `sales`, "Atendió" en la boleta). Los pagos lo harán en la fase 4.
 
-### Fase 2 — Clientes y prospectos
+### Fase 2 — Clientes y prospectos (EGO-04)
 
-- [ ] Tabla `members`: nombres, DNI, teléfono, foto, fecha de nacimiento, contacto de emergencia, notas, estado (`prospecto`, `activo`, `inactivo`), origen del prospecto
-- [ ] Lista con búsqueda (nombre, DNI, teléfono) y filtros por estado: activos, por vencer, vencidos, con deuda, prospectos
-- [ ] Alta y edición con foto (cámara o galería, reutiliza `PhotoPicker`)
-- [ ] Ficha del cliente: datos, membresía actual, historial de pagos y deuda
-- [ ] Convertir un prospecto en cliente al inscribirlo en un plan
-- [ ] Botón "Escribir por WhatsApp" desde la ficha
-- [ ] Diseño en dos columnas en tablet (lista y ficha)
+- [x] Tabla `members` en la migración v3: nombres, apellidos, DNI (único), celular, foto, fecha de nacimiento, contacto de emergencia, notas, estado (`prospect`, `active`, `inactive`), origen y quién lo registró
+- [x] Lista con búsqueda (nombre, DNI, celular) y filtros por estado con contadores: Todos, Activos, Prospectos, Inactivos
+- [ ] Filtros por vencimiento y deuda (por vencer, vencidos, con deuda): dependen de la fase 3
+- [x] Alta y edición con foto de la cámara o la galería, copiada al almacenamiento de la app
+- [x] Ficha del cliente con sus datos, edad y un espacio para la membresía (se completa en las fases 3 y 4)
+- [x] Prospectos: origen ("¿Cómo nos conoció?") y botón "Marcar como activo". En la fase 3 pasan a activos al inscribirlos en un plan.
+- [x] Botones "WhatsApp" y "Llamar" desde la ficha
+- [x] En tablet, dos columnas: la lista y la ficha
+- [x] Eliminar clientes solo como administrador
 
 ### Fase 3 — Planes, membresías y coaches
 

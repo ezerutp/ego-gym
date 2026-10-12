@@ -8,7 +8,8 @@ App Android (React Native + Expo) para gestionar un gimnasio desde una tablet en
 - **Navegación**: en tablet, barra lateral con Inicio, Clientes, Tienda y Más, y el botón **Vender** para escanear; en teléfono, la misma navegación como barra inferior. La Tienda tiene sus propias secciones: Resumen, Almacén, Vender y Alertas.
 - **Ajustes**: datos del gimnasio (salen en la boleta), alertas del almacén, notificaciones y bases públicas de productos. El botón **Sincronizar base de datos** está visible pero deshabilitado ("Próximamente").
 - **Usuarios y permisos**: al abrir la app se elige el usuario y se ingresa su PIN de 4 dígitos. El primer arranque crea al administrador. La recepción no accede a Ajustes ni a Usuarios ni puede eliminar registros. La tablet se bloquea sola tras los minutos sin uso configurados, y cada venta guarda quién la hizo.
-- **Próximamente**: clientes y prospectos, planes y membresías, coaches, cobros con boleta, reportes programados e integraciones (Telegram y WhatsApp).
+- **Clientes y prospectos**: registro con foto, DNI, celular, fecha de nacimiento, contacto de emergencia, notas, estado y origen. Lista con búsqueda y filtros por estado, y ficha con botones para WhatsApp y llamar. En tablet, la lista y la ficha se ven lado a lado.
+- **Próximamente**: planes y membresías, coaches, cobros con boleta, reportes programados e integraciones (Telegram y WhatsApp).
 - **Todo es local**: SQLite en el dispositivo, sin servidor.
 
 ## Estructura
@@ -22,10 +23,11 @@ src/
     product/           Alta, detalle, edición y ajuste de stock
     receipt/[id].tsx   Boleta compartible
     settings.tsx       Ajustes
-    lock.tsx           Bloqueo con PIN y alta del primer administrador
     users/             Gestión de usuarios (solo admin)
+    member/            Ficha y formulario de clientes
   features/
     auth/              Usuarios, PIN, sesión y permisos
+    members/           Clientes y prospectos: base de datos, contacto y componentes
     store/             Base de datos, lógica y componentes de la tienda
   db/                  Esquema SQLite y ajustes
   lib/                 Formatos, consultas al enfocar y diseño responsive

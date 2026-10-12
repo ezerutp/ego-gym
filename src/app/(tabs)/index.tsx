@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card, IconCircle, Pill, SectionTitle, type IconName } from '@/components/ui';
 import { getSettings } from '@/db/settings';
+import { countMembersByStatus } from '@/features/members/db/members';
 import { getTodaySummary } from '@/features/store/db/sales';
 import { money } from '@/lib/format';
 import { useIsWide } from '@/lib/layout';
@@ -15,12 +16,12 @@ export default function HomeScreen() {
   const { colors, font } = useTheme();
   const wide = useIsWide();
   const { data } = useFocusQuery(async (db) => {
-    const [settings, today] = await Promise.all([getSettings(db), getTodaySummary(db)]);
-    return { settings, today };
+    const [settings, today, members] = await Promise.all([getSettings(db), getTodaySummary(db), countMembersByStatus(db)]);
+    return { settings, today, members };
   });
 
   if (!data) return <SafeAreaView style={styles.safe} />;
-  const { settings, today } = data;
+  const { settings, today, members } = data;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -32,7 +33,7 @@ export default function HomeScreen() {
 
         <SectionTitle title="Accesos rápidos" />
         <View style={styles.actions}>
-          <QuickAction icon="person-add" label="Nuevo cliente" soon />
+          <QuickAction icon="person-add" label="Nuevo cliente" onPress={() => router.push('/member/form')} />
           <QuickAction icon="card" label="Cobrar membresía" soon />
           <QuickAction icon="cart" label="Nueva venta" onPress={() => router.push({ pathname: '/scan', params: { mode: 'sell' } })} />
           <QuickAction icon="add-circle" label="Ingresar productos" onPress={() => router.push({ pathname: '/scan', params: { mode: 'add' } })} />
@@ -47,8 +48,15 @@ export default function HomeScreen() {
               Ventas de la tienda · {today.count} {today.count === 1 ? 'boleta' : 'boletas'}
             </Text>
           </Card>
-          <Card style={styles.tile}>
+          <Card style={styles.tile} onPress={() => router.navigate('/members')}>
             <IconCircle icon="people" color={colors.info} bg={colors.infoSoft} />
+            <Text style={[font.title, { fontSize: 26 }]}>{members.active}</Text>
+            <Text style={font.small}>
+              Clientes activos · {members.prospect} {members.prospect === 1 ? 'prospecto' : 'prospectos'}
+            </Text>
+          </Card>
+          <Card style={styles.tile}>
+            <IconCircle icon="card" color={colors.warning} bg={colors.warningSoft} />
             <Pill label="Próximamente" tone="info" icon="time-outline" />
             <Text style={font.small}>Membresías por vencer, deudas y cobros del día.</Text>
           </Card>
