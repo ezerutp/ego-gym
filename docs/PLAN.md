@@ -53,7 +53,7 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 
 - [x] Tabla `members` en la migración v3: nombres, apellidos, DNI (único), celular, foto, fecha de nacimiento, contacto de emergencia, notas, estado (`prospect`, `active`, `inactive`), origen y quién lo registró
 - [x] Lista con búsqueda (nombre, DNI, celular) y filtros por estado con contadores: Todos, Activos, Prospectos, Inactivos
-- [ ] Filtros por vencimiento y deuda (por vencer, vencidos, con deuda): dependen de la fase 3
+- [x] Filtros por vencimiento (por vencer, vencidos), hechos en la fase 3. El filtro "con deuda" llega en la fase 4.
 - [x] Alta y edición con foto de la cámara o la galería, copiada al almacenamiento de la app
 - [x] Ficha del cliente con sus datos, edad y un espacio para la membresía (se completa en las fases 3 y 4)
 - [x] Prospectos: origen ("¿Cómo nos conoció?") y botón "Marcar como activo". En la fase 3 pasan a activos al inscribirlos en un plan.
@@ -61,16 +61,17 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [x] En tablet, dos columnas: la lista y la ficha
 - [x] Eliminar clientes solo como administrador
 
-### Fase 3 — Planes, membresías y coaches
+### Fase 3 — Planes, membresías y coaches (EGO-05)
 
-- [ ] Tabla `plans`: nombre, tipo (`mensual`, `interdiario`, `diario`, `promocion`, `otro`), precio, duración en días, activo
-- [ ] Pantalla Planes (solo admin) con los planes iniciales sugeridos
-- [ ] Tabla `coaches`: nombre, teléfono, foto, especialidad, activo
-- [ ] Pantalla Coaches con sus clientes asignados
-- [ ] Tabla `subscriptions`: cliente, plan, inicio, vencimiento, precio acordado y estado
-- [ ] Tabla `subscription_addons` para el personalizado: coach, precio, inicio y vencimiento
-- [ ] Inscribir y renovar: elegir plan, fecha de inicio, precio editable y personalizado opcional
-- [ ] Estados calculados: vigente, por vencer (N días configurables), vencida
+- [x] Tabla `plans` en la migración v4: nombre, tipo (`monthly`, `alternate`, `daily`, `promo`, `other`), precio, duración en días y activo. Vienen precargados Mensual, Interdiario, Pase diario y Promo dúo, con precio 0 para que el admin lo defina.
+- [x] Pantalla Planes (solo admin), con aviso de planes sin precio
+- [x] Tabla `coaches`: nombre, celular, foto, especialidad y activo
+- [x] Pantalla Coaches (solo admin) con sus clientes de personalizado vigente
+- [x] Tabla `subscriptions`: cliente, plan (más una copia del nombre), inicio, fin, precio acordado, notas y quién la registró
+- [x] Tabla `subscription_addons` para el personalizado: coach, precio y las mismas fechas de la membresía
+- [x] Inscribir y renovar desde la ficha: plan, inicio (al renovar, el día siguiente al fin vigente), fin calculado y editable, precio editable y personalizado opcional. Al inscribirse, un prospecto o un cliente inactivo pasa a activo.
+- [x] Estados calculados: vigente, por vencer (N días configurables en Ajustes) y vencida, visibles en la ficha, la lista, los filtros y el Inicio
+- [x] Historial de membresías en la ficha. El admin puede anular una membresía.
 
 ### Fase 4 — Cobros, deudas y boletas
 

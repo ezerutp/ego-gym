@@ -2,6 +2,15 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-12 — Fase 3
+
+- **Días inclusivos.** Un plan de 30 días que empieza el 1 termina el 30 (`endDateFor` = inicio + duración - 1). Un pase diario empieza y termina el mismo día.
+- **Renovación encadenada.** Si la membresía sigue vigente, la renovación empieza el día siguiente a su fin, para no perder días pagados. Si ya venció, empieza hoy. Las dos fechas se pueden cambiar a mano.
+- **Copia del nombre del plan.** `subscriptions.plan_name` guarda el nombre del plan al momento de inscribir. Si luego el plan se renombra o se desactiva, el historial no cambia. Por eso los planes se desactivan en vez de borrarse.
+- **El estado de la membresía se calcula, no se guarda.** Se usa la última fecha de fin (`MAX(end_date)`) de cada cliente frente a la fecha de hoy, y así nunca queda desactualizado. El estado del cliente (prospecto, activo o inactivo) es otra cosa: indica la relación con el gimnasio, no si su plan está vigente.
+- **Personalizado como adicional.** Va en `subscription_addons` con las mismas fechas de la membresía, para sumarlo en la boleta de la fase 4. La tabla tiene su propio inicio y fin por si más adelante se venden personalizados de duración distinta.
+- **Planes y coaches son solo para el admin**, porque cambian precios. La recepción igual puede elegir plan y coach al inscribir.
+
 ## 2026-10-12 — Fase 2
 
 - **DNI único pero opcional.** El índice `idx_members_dni` es parcial (`WHERE dni IS NOT NULL`) y los campos opcionales vacíos se guardan como `NULL`, así varios prospectos pueden quedar sin DNI. Además se valida antes de guardar, para mostrar a quién pertenece un DNI repetido.
