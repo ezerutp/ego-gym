@@ -6,6 +6,7 @@ import { Card, IconCircle, SectionTitle, type IconName } from '@/components/ui';
 import { getSettings } from '@/db/settings';
 import { countMembersByStatus } from '@/features/members/db/members';
 import { countMembershipAlerts } from '@/features/memberships/db/subscriptions';
+import { countDebts, getTodayPayments } from '@/features/payments/db/payments';
 import { getTodaySummary } from '@/features/store/db/sales';
 import { addDays, money, todayIso } from '@/lib/format';
 import { useIsWide } from '@/lib/layout';
@@ -19,16 +20,18 @@ export default function HomeScreen() {
   const { data } = useFocusQuery(async (db) => {
     const settings = await getSettings(db);
     const day = todayIso();
-    const [today, members, memberships] = await Promise.all([
+    const [today, payments, members, memberships, debts] = await Promise.all([
       getTodaySummary(db),
+      getTodayPayments(db),
       countMembersByStatus(db),
       countMembershipAlerts(db, day, addDays(day, settings.membershipWarningDays)),
+      countDebts(db),
     ]);
-    return { settings, today, members, memberships };
+    return { settings, today, payments, members, memberships, debts };
   });
 
   if (!data) return <SafeAreaView style={styles.safe} />;
-  const { settings, today, members, memberships } = data;
+  const { settings, today, payments, members, memberships, debts } = data;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -48,11 +51,11 @@ export default function HomeScreen() {
 
         <SectionTitle title="Hoy" />
         <View style={styles.grid}>
-          <Card style={styles.tile} onPress={() => router.navigate('/store')}>
-            <IconCircle icon="storefront" color={colors.primary} bg={colors.primarySoft} />
-            <Text style={[font.title, { fontSize: 26 }]}>{money(today.total)}</Text>
+          <Card style={styles.tile}>
+            <IconCircle icon="wallet" color={colors.primary} bg={colors.primarySoft} />
+            <Text style={[font.title, { fontSize: 26 }]}>{money(today.total + payments.total)}</Text>
             <Text style={font.small}>
-              Ventas de la tienda · {today.count} {today.count === 1 ? 'boleta' : 'boletas'}
+              Ingresos de hoy · Membresías {money(payments.total)} · Tienda {money(today.total)}
             </Text>
           </Card>
           <Card style={styles.tile} onPress={() => router.navigate('/members')}>
@@ -67,6 +70,13 @@ export default function HomeScreen() {
             <Text style={[font.title, { fontSize: 26 }]}>{memberships.expiring}</Text>
             <Text style={font.small}>
               Por vencer en {settings.membershipWarningDays} días · {memberships.expired} {memberships.expired === 1 ? 'vencida' : 'vencidas'}
+            </Text>
+          </Card>
+          <Card style={styles.tile} onPress={() => router.navigate('/members')}>
+            <IconCircle icon="alert-circle" color={colors.danger} bg={colors.dangerSoft} />
+            <Text style={[font.title, { fontSize: 26 }]}>{money(debts.total)}</Text>
+            <Text style={font.small}>
+              Deudas · {debts.members} {debts.members === 1 ? 'cliente' : 'clientes'}
             </Text>
           </Card>
         </View>
