@@ -79,7 +79,7 @@ function UserLogin({ users, gymName }: { users: User[]; gymName: string }) {
     if (failed >= MAX_ATTEMPTS) {
       setAttempts(0);
       setLockedFor(LOCKOUT_SECONDS);
-      setError('Demasiados intentos');
+      setError('');
     } else {
       setError('PIN incorrecto');
     }
@@ -113,8 +113,8 @@ function UserLogin({ users, gymName }: { users: User[]; gymName: string }) {
       )}
       <UserAvatar name={selected.name} role={selected.role} size={64} />
       <Text style={font.h2}>Hola, {selected.name.split(' ')[0]}</Text>
-      <Text style={[font.small, error && { color: colors.danger, fontWeight: '600' }]}>
-        {lockedFor > 0 ? `${error}. Espera ${lockedFor} s` : error || `Ingresa tu PIN de ${PIN_LENGTH} dígitos`}
+      <Text style={[font.small, (error || lockedFor > 0) && { color: colors.danger, fontWeight: '600' }]}>
+        {lockedFor > 0 ? `Demasiados intentos. Espera ${lockedFor} s` : error || `Ingresa tu PIN de ${PIN_LENGTH} dígitos`}
       </Text>
       <PinPad value={pin} onChange={(v) => (setPin(v), setError(''))} onComplete={submit} disabled={lockedFor > 0} error={!!error} />
     </View>
