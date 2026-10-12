@@ -2,7 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 export const DATABASE_NAME = 'ego-gym.db';
 
-const DATABASE_VERSION = 2;
+const DATABASE_VERSION = 3;
 
 export async function migrateDb(db: SQLiteDatabase) {
   await db.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
@@ -83,6 +83,33 @@ export async function migrateDb(db: SQLiteDatabase) {
       ALTER TABLE sales ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;
     `);
     version = 2;
+  }
+
+  if (version === 2) {
+    await db.execAsync(`
+      CREATE TABLE members (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        first_name TEXT NOT NULL,
+        last_name TEXT NOT NULL DEFAULT '',
+        dni TEXT,
+        phone TEXT,
+        photo_uri TEXT,
+        birth_date TEXT,
+        emergency_name TEXT,
+        emergency_phone TEXT,
+        notes TEXT,
+        status TEXT NOT NULL DEFAULT 'prospect' CHECK (status IN ('prospect', 'active', 'inactive')),
+        source TEXT,
+        created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        synced INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE UNIQUE INDEX idx_members_dni ON members(dni) WHERE dni IS NOT NULL;
+      CREATE INDEX idx_members_name ON members(first_name, last_name);
+    `);
+    version = 3;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
