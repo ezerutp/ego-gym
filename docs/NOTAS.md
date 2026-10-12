@@ -2,6 +2,15 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-12 — Fase 1
+
+- **PIN con hash.** Se guarda `SHA-256(sal:PIN)` con `expo-crypto` y una sal aleatoria por usuario, nunca el PIN en claro. Con 4 dígitos el hash no impide que alguien con acceso al archivo de la base pruebe las 10 000 combinaciones. Lo que se busca es que el PIN no se pueda leer directamente; la protección real es la espera tras 5 intentos fallidos en la pantalla de bloqueo.
+- **Rutas protegidas.** Se usa `Stack.Protected` de Expo Router: la app completa requiere sesión, Ajustes y Usuarios requieren admin, y `lock` solo existe sin sesión. Cuando cambia la sesión, el router redirige solo. En SDK 57 todavía no existe `redirectTo`; sin sesión se cae en la primera pantalla disponible, que es `lock`.
+- **Cambio de rol del propio usuario.** Si el admin se quita el rol o se desactiva a sí mismo, primero se sale de la pantalla y después se actualiza la sesión, para que la redirección por permisos no choque con `router.back()`.
+- **Detectar actividad.** `onTouchStartCapture` no existe en los tipos de `View`. Se usa `onStartShouldSetResponderCapture` devolviendo `false`, que registra cada toque sin quitarle el gesto a los hijos. Falta confirmar en la tablet que también cuenta los toques que empiezan un scroll.
+- **La sesión vive en memoria.** Si Android cierra la app, al volver se pide el PIN otra vez. Es intencional para una tablet compartida.
+- **expo-doctor.** Reporta 4 paquetes (`expo`, `expo-router`, `expo-sharing` y `expo-splash-screen`) con versiones de parche más nuevas; ya venían así de Bodega Scan. Se actualizarán en un PR aparte.
+
 ## 2026-10-12 — Fase 0
 
 - **Una sola app en vez de dos.** Se copió el código de Bodega Scan (no el repo ni como submódulo). Así se evita duplicar rutas y dependencias, y los reportes pueden juntar las ventas de la tienda con los cobros de membresías. Desde ahora Bodega Scan y EGO Gym evolucionan por separado.
