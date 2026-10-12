@@ -12,6 +12,7 @@ import { session } from '@/features/auth/lib/session';
 import { cart, cartCount, cartTotal, useCart } from '@/features/store/lib/cart';
 import { money, parseMoney } from '@/lib/format';
 import { notifyLowStock, rescheduleAlerts } from '@/lib/notifications';
+import { useIsWide } from '@/lib/layout';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
@@ -19,6 +20,7 @@ export default function SellScreen() {
   const styles = useStyles();
   const { colors, font } = useTheme();
   const db = useSQLiteContext();
+  const wide = useIsWide();
   const items = useCart();
   const [customer, setCustomer] = useState('');
   const [query, setQuery] = useState('');
@@ -46,6 +48,89 @@ export default function SellScreen() {
     }
   };
 
+  const finder = (
+    <>
+      <Pressable style={styles.scanCard} onPress={() => router.push({ pathname: '/scan', params: { mode: 'sell' } })}>
+        <View style={styles.scanIcon}>
+          <Ionicons name="scan" size={28} color={colors.primary} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[font.h3, { color: colors.white }]}>Escanear productos</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13 }}>Escanea uno tras otro sin cerrar la cámara</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={22} color={colors.white} />
+      </Pressable>
+
+      <View style={styles.search}>
+        <Ionicons name="search" size={18} color={colors.faint} />
+        <TextInput value={query} onChangeText={setQuery} placeholder="O busca por nombre…" placeholderTextColor={colors.faint} style={styles.searchInput} />
+      </View>
+      {matches && matches.length > 0 && (
+        <Card style={{ padding: 0, marginTop: spacing.sm }}>
+          {matches.slice(0, 6).map((p, i) => (
+            <Pressable
+              key={p.id}
+              style={[styles.match, i > 0 && styles.border]}
+              onPress={() => {
+                if (!cart.add(p)) return Alert.alert('Sin stock', `No queda stock disponible de ${p.name}.`);
+                setQuery('');
+              }}
+            >
+              <ProductThumb uri={p.image_uri} size={36} />
+              <Text style={[font.body, { flex: 1 }]} numberOfLines={1}>
+                {p.name}
+              </Text>
+              <Text style={font.small}>Stock {p.stock}</Text>
+              <Ionicons name="add-circle" size={24} color={colors.primary} />
+            </Pressable>
+          ))}
+        </Card>
+      )}
+    </>
+  );
+
+  const cartView = (
+    <>
+      {items.length === 0 ? (
+        <EmptyState icon="cart-outline" title="El carrito está vacío" message="Los productos que escanees aparecerán aquí con su precio y cantidad." />
+      ) : (
+        <>
+          <SectionTitle title="Carrito" />
+          <Card style={{ padding: 0 }}>
+            {items.map((line, i) => (
+              <View key={line.productId} style={[styles.line, i > 0 && styles.border]}>
+                <ProductThumb uri={line.imageUri} size={48} />
+                <View style={{ flex: 1, gap: 6 }}>
+                  <Text style={font.h3} numberOfLines={2}>
+                    {line.name}
+                  </Text>
+                  <PriceInput value={line.unitPrice} onChange={(v) => cart.setPrice(line.productId, v)} />
+                </View>
+                <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                  <Stepper value={line.quantity} onChange={(q) => cart.setQuantity(line.productId, q)} max={line.maxStock} />
+                  <Text style={styles.lineTotal}>{money(line.unitPrice * line.quantity)}</Text>
+                </View>
+              </View>
+            ))}
+          </Card>
+          <View style={{ marginTop: spacing.lg }}>
+            <Field label="Cliente (opcional)" value={customer} onChangeText={setCustomer} placeholder="Nombre del cliente" />
+          </View>
+        </>
+      )}
+    </>
+  );
+
+  const checkoutBar = items.length > 0 && (
+    <View style={styles.checkout}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <Text style={font.body}>Total a cobrar</Text>
+        <Text style={styles.total}>{money(total)}</Text>
+      </View>
+      <Button title="Cobrar y generar boleta" icon="receipt" loading={saving} onPress={checkout} />
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
@@ -64,81 +149,26 @@ export default function SellScreen() {
           )}
         </View>
 
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Pressable style={styles.scanCard} onPress={() => router.push({ pathname: '/scan', params: { mode: 'sell' } })}>
-            <View style={styles.scanIcon}>
-              <Ionicons name="scan" size={28} color={colors.primary} />
+        {wide ? (
+          <View style={styles.columns}>
+            <ScrollView style={styles.finderPane} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+              {finder}
+            </ScrollView>
+            <View style={styles.cartPane}>
+              <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+                {cartView}
+              </ScrollView>
+              {checkoutBar}
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[font.h3, { color: colors.white }]}>Escanear productos</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13 }}>Escanea uno tras otro sin cerrar la cámara</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={22} color={colors.white} />
-          </Pressable>
-
-          <View style={styles.search}>
-            <Ionicons name="search" size={18} color={colors.faint} />
-            <TextInput value={query} onChangeText={setQuery} placeholder="O busca por nombre…" placeholderTextColor={colors.faint} style={styles.searchInput} />
           </View>
-          {matches && matches.length > 0 && (
-            <Card style={{ padding: 0, marginTop: spacing.sm }}>
-              {matches.slice(0, 6).map((p, i) => (
-                <Pressable
-                  key={p.id}
-                  style={[styles.match, i > 0 && styles.border]}
-                  onPress={() => {
-                    if (!cart.add(p)) return Alert.alert('Sin stock', `No queda stock disponible de ${p.name}.`);
-                    setQuery('');
-                  }}
-                >
-                  <ProductThumb uri={p.image_uri} size={36} />
-                  <Text style={[font.body, { flex: 1 }]} numberOfLines={1}>
-                    {p.name}
-                  </Text>
-                  <Text style={font.small}>Stock {p.stock}</Text>
-                  <Ionicons name="add-circle" size={24} color={colors.primary} />
-                </Pressable>
-              ))}
-            </Card>
-          )}
-
-          {items.length === 0 ? (
-            <EmptyState icon="cart-outline" title="El carrito está vacío" message="Los productos que escanees aparecerán aquí con su precio y cantidad." />
-          ) : (
-            <>
-              <SectionTitle title="Carrito" />
-              <Card style={{ padding: 0 }}>
-                {items.map((line, i) => (
-                  <View key={line.productId} style={[styles.line, i > 0 && styles.border]}>
-                    <ProductThumb uri={line.imageUri} size={48} />
-                    <View style={{ flex: 1, gap: 6 }}>
-                      <Text style={font.h3} numberOfLines={2}>
-                        {line.name}
-                      </Text>
-                      <PriceInput value={line.unitPrice} onChange={(v) => cart.setPrice(line.productId, v)} />
-                    </View>
-                    <View style={{ alignItems: 'flex-end', gap: 6 }}>
-                      <Stepper value={line.quantity} onChange={(q) => cart.setQuantity(line.productId, q)} max={line.maxStock} />
-                      <Text style={styles.lineTotal}>{money(line.unitPrice * line.quantity)}</Text>
-                    </View>
-                  </View>
-                ))}
-              </Card>
-              <View style={{ marginTop: spacing.lg }}>
-                <Field label="Cliente (opcional)" value={customer} onChangeText={setCustomer} placeholder="Nombre del cliente" />
-              </View>
-            </>
-          )}
-        </ScrollView>
-
-        {items.length > 0 && (
-          <View style={styles.checkout}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <Text style={font.body}>Total a cobrar</Text>
-              <Text style={styles.total}>{money(total)}</Text>
-            </View>
-            <Button title="Cobrar y generar boleta" icon="receipt" loading={saving} onPress={checkout} />
-          </View>
+        ) : (
+          <>
+            <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+              {finder}
+              {cartView}
+            </ScrollView>
+            {checkoutBar}
+          </>
         )}
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -175,6 +205,9 @@ const useStyles = makeStyles(({ colors, shadow }) =>
     safe: { flex: 1, backgroundColor: colors.background },
     header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.md },
     content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+    columns: { flex: 1, flexDirection: 'row' },
+    finderPane: { flex: 1 },
+    cartPane: { flex: 1.2, borderLeftWidth: 1, borderLeftColor: colors.border },
     scanCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.primary, borderRadius: radius.lg, padding: spacing.lg, ...shadow },
     scanIcon: { width: 52, height: 52, borderRadius: 16, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center' },
     search: {
