@@ -11,7 +11,7 @@ import { createSale } from '@/features/store/db/sales';
 import { session } from '@/features/auth/lib/session';
 import { cart, cartCount, cartTotal, useCart } from '@/features/store/lib/cart';
 import { money, parseMoney } from '@/lib/format';
-import { notifyLowStock, rescheduleAlerts } from '@/features/store/lib/notifications';
+import { notifyLowStock, rescheduleAlerts } from '@/lib/notifications';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 

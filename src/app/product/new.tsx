@@ -12,7 +12,7 @@ import { Button, Card, Field, IconCircle, Pill, ProductThumb, Stepper } from '@/
 import { adjustStock, createProduct, getProductByBarcode, updateProduct, type Product } from '@/features/store/db/products';
 import { getSettings } from '@/db/settings';
 import { money, parseMoney } from '@/lib/format';
-import { rescheduleAlerts } from '@/features/store/lib/notifications';
+import { rescheduleAlerts } from '@/lib/notifications';
 import { downloadProductImage, lookupBarcode, persistLocalImage, type RemoteProduct } from '@/features/store/lib/productLookup';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 

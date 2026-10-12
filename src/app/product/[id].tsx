@@ -14,7 +14,7 @@ import { getSettings } from '@/db/settings';
 import { alertsForProduct, minStockFor } from '@/features/store/lib/alerts';
 import { cart } from '@/features/store/lib/cart';
 import { describeExpiry, formatDateTime, formatDay, money, parseMoney } from '@/lib/format';
-import { notifyLowStock, rescheduleAlerts } from '@/features/store/lib/notifications';
+import { notifyLowStock, rescheduleAlerts } from '@/lib/notifications';
 import { persistLocalImage } from '@/features/store/lib/productLookup';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';

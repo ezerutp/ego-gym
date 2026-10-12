@@ -40,7 +40,7 @@ export function onNotificationTap(open: (url: string) => void) {
 export async function sendTestNotification() {
   if (!Notifications || !(await setupNotifications())) return false;
   await Notifications.scheduleNotificationAsync({
-    content: { title: 'EGO Gym', body: 'Así se verán tus alertas de stock y vencimiento.' },
+    content: { title: 'EGO Gym', body: 'Así se verán tus alertas de membresías, deudas y almacén.' },
     trigger: { channelId: CHANNEL_ID },
   });
   return true;
@@ -50,8 +50,8 @@ export async function setupNotifications() {
   if (!Notifications) return false;
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
-      name: 'Alertas de almacén',
-      description: 'Poco stock y productos por vencer',
+      name: 'Alertas de EGO Gym',
+      description: 'Membresías por vencer, deudas, poco stock y productos por vencer',
       importance: Notifications.AndroidImportance.HIGH,
     });
   }

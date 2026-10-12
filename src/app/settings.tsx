@@ -7,7 +7,7 @@ import { Button, Card, Field, IconCircle, Pill, Stepper, type IconName } from '@
 import { AdminOnly } from '@/features/auth/components/AdminOnly';
 import { getSettings, saveSettings, type Settings } from '@/db/settings';
 import { PRODUCT_SOURCES } from '@/features/store/lib/productLookup';
-import { notificationsAvailable, rescheduleAlerts, sendTestNotification, setupNotifications } from '@/features/store/lib/notifications';
+import { notificationsAvailable, rescheduleAlerts, sendTestNotification, setupNotifications } from '@/lib/notifications';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, spacing, useTheme } from '@/theme';
 
