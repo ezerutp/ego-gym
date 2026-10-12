@@ -16,8 +16,8 @@ const GROUPS: { title: string; items: Item[] }[] = [
   {
     title: 'Gimnasio',
     items: [
-      { icon: 'pricetags', title: 'Planes', subtitle: 'Mensual, interdiario, pase diario, promociones', permission: 'manage_plans' },
-      { icon: 'barbell', title: 'Coaches', subtitle: 'Personalizados y clientes asignados', permission: 'manage_plans' },
+      { icon: 'pricetags', title: 'Planes', subtitle: 'Mensual, interdiario, pase diario, promociones', href: '/plans', permission: 'manage_plans' },
+      { icon: 'barbell', title: 'Coaches', subtitle: 'Personalizados y clientes asignados', href: '/coaches', permission: 'manage_plans' },
       { icon: 'document-text', title: 'Reportes', subtitle: 'Ventas, clientes y cobros programados', permission: 'manage_reports' },
     ],
   },

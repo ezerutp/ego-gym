@@ -44,6 +44,11 @@ export default function RootLayout() {
             <Stack.Screen name="receipt/[id]" options={{ title: 'Boleta' }} />
             <Stack.Screen name="member/[id]" options={{ title: 'Cliente' }} />
             <Stack.Screen name="member/form" options={{ title: 'Cliente' }} />
+            <Stack.Screen name="member/enroll" options={{ title: 'Inscribir' }} />
+            <Stack.Screen name="plans/index" options={{ title: 'Planes' }} />
+            <Stack.Screen name="plans/[id]" options={{ title: 'Plan' }} />
+            <Stack.Screen name="coaches/index" options={{ title: 'Coaches' }} />
+            <Stack.Screen name="coaches/[id]" options={{ title: 'Coach' }} />
             <Stack.Screen name="settings" options={{ title: 'Ajustes' }} />
             <Stack.Screen name="users/index" options={{ title: 'Usuarios' }} />
             <Stack.Screen name="users/[id]" options={{ title: 'Usuario' }} />
