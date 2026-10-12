@@ -1,7 +1,9 @@
 import { Directory, File, Paths } from 'expo-file-system';
 import * as Print from 'expo-print';
+import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { describePeriod, type ReportData } from '@/features/reports/lib/build';
+import { setReportPdf } from '@/features/reports/db/reports';
+import { buildReport, describePeriod, type ReportData, type ReportKind } from '@/features/reports/lib/build';
 import { lightTheme } from '@/theme';
 
 const escape = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -68,4 +70,12 @@ export async function createReportPdf(r: ReportData, fileName: string) {
   dest.create();
   dest.write(base64, { encoding: 'base64' });
   return dest.uri;
+}
+
+/** Also used when a report saved as text is shared as PDF later. */
+export async function attachPdf(db: SQLiteDatabase, reportId: number, kind: ReportKind, start: string, end: string) {
+  const data = await buildReport(db, kind, start, end);
+  const uri = await createReportPdf(data, `reporte-${reportId}-${kind}-${start}`);
+  await setReportPdf(db, reportId, uri);
+  return uri;
 }

@@ -10,7 +10,7 @@ import { Button, Card, SectionTitle } from '@/components/ui';
 import { AdminOnly } from '@/features/auth/components/AdminOnly';
 import { deleteReport, getReport } from '@/features/reports/db/reports';
 import { buildReport, describePeriod } from '@/features/reports/lib/build';
-import { attachPdf } from '@/features/reports/lib/runner';
+import { attachPdf } from '@/features/reports/lib/pdf';
 import { formatDateTime } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
