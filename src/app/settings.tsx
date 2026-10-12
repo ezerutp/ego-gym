@@ -95,6 +95,12 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
             <Button title="Probar notificación" icon="notifications-outline" variant="secondary" onPress={testNotification} />
           </Section>
 
+          <Section icon="lock-closed" title="Seguridad" subtitle="Bloqueo de la tablet">
+            <Row label="Bloquear tras minutos sin uso" hint={form.autoLockMinutes === 0 ? 'Nunca se bloquea sola' : 'Al bloquearse se pide de nuevo el PIN'}>
+              <Stepper value={form.autoLockMinutes} onChange={(v) => set('autoLockMinutes', v)} min={0} max={120} />
+            </Row>
+          </Section>
+
           <Section icon="search" title="Fuentes de productos" subtitle="Dónde buscar un código nuevo">
             {PRODUCT_SOURCES.map((source) => (
               <Row key={source.id} label={source.name} hint={source.description}>
