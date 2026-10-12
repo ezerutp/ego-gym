@@ -41,7 +41,7 @@ export default function HomeScreen() {
         <SectionTitle title="Accesos rápidos" />
         <View style={styles.actions}>
           <QuickAction icon="person-add" label="Nuevo cliente" onPress={() => router.push('/member/form')} />
-          <QuickAction icon="card" label="Cobrar membresía" soon />
+          <QuickAction icon="card" label="Cobrar membresía" onPress={() => router.push('/charge')} />
           <QuickAction icon="cart" label="Nueva venta" onPress={() => router.push({ pathname: '/scan', params: { mode: 'sell' } })} />
           <QuickAction icon="add-circle" label="Ingresar productos" onPress={() => router.push({ pathname: '/scan', params: { mode: 'add' } })} />
         </View>
