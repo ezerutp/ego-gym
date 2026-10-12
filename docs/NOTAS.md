@@ -2,6 +2,14 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-12 — Fase 8
+
+- **Marca.** El ícono adaptable usa un degradado verde de fondo y una pesa con "EGO" en blanco dentro de la zona segura (66 % central). El monocromo sirve para los íconos temáticos de Android 13+. El splash agrega "GYM" sobre el verde `#0B7A5C`. Todo se genera con `python3 scripts/make-brand.py assets vista.png` (Pillow y la fuente Montserrat); el segundo argumento crea una hoja de vista previa para aprobar los cambios antes de reemplazar los recursos.
+- **Respaldo con la API de SQLite.** `backupDatabaseAsync` de `expo-sqlite` copia la base abierta a otra de forma consistente, aunque la app la esté usando. Exportar crea `documents/backups/ego-gym-respaldo-AAAAMMDD-HHMM.db` y abre el menú de compartir. Restaurar valida la cabecera `SQLite format 3` y que existan las tablas de la app, aplica las migraciones al respaldo (puede ser de una versión anterior), lo copia sobre la base actual y cierra la sesión. Las fotos no se incluyen.
+- **El archivo elegido se lee como bytes.** `File.pickFileAsync` devuelve un archivo del selector de Android. Se lee con `bytes()` y se escribe en la carpeta de la app antes de abrirlo con SQLite, para no depender de permisos sobre el archivo original (como pasó con el PDF y las capturas).
+- **Ajustes guarda solo lo que cambió.** Antes se escribía toda la configuración cargada al abrir la pantalla, lo que podía pisar valores que cambiaron en segundo plano (`telegramLastSummary`, `lastBackupAt`).
+- **APK local.** `npx expo prebuild --platform android --clean` y luego `cd android && ./gradlew assembleRelease`. El plugin `withArm64Only` deja `reactNativeArchitectures=arm64-v8a`. El release se firma con la clave de depuración que genera Expo: sirve para instalarlo en la tablet, pero no para publicarlo en Play Store (hace falta un keystore propio o EAS).
+
 ## 2026-10-12 — Fase 7
 
 - **Telegram sin servidor.** La app llama directo a la Bot API con `fetch` (`src/features/integrations/lib/telegram.ts`): `getMe` para validar el token, `getUpdates` para encontrar el chat que envió `/start`, `sendMessage`, `sendDocument` (PDF) y `sendPhoto` (boletas). Los archivos se suben con `FormData` adjuntando un `File` de `expo-file-system`. Hay un tiempo de espera de 20 s y los errores comunes se traducen al español (token inválido, chat no encontrado, bot bloqueado, sin internet).

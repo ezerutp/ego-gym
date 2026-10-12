@@ -14,6 +14,7 @@ App Android (React Native + Expo) para gestionar un gimnasio desde una tablet en
 - **Avisos**: campana en el Inicio y pantalla "Requiere atención" con membresías por vencer, vencidas, deudas y alertas de la tienda. Cada aviso trae un recordatorio por WhatsApp ya escrito y un botón para renovar o cobrar. El resumen diario y los recordatorios de vencimiento llegan como notificación (solo en el APK).
 - **Reportes**: resumen general, ventas, cobros y clientes por periodo, en PDF o texto para compartir. El administrador puede programarlos (diario, semanal o mensual): se generan solos al abrir la app o en segundo plano, y avisan con una notificación.
 - **Integraciones**: Telegram, conectado con un bot propio, recibe solos los reportes programados y el resumen diario, y se usa en el botón "Enviar al admin" de boletas y reportes. Los mensajes de WhatsApp para clientes son plantillas editables, y los reportes también se pueden mandar al celular del admin por WhatsApp.
+- **Respaldo**: exportar y restaurar la base de datos desde Ajustes.
 - **Todo es local**: SQLite en el dispositivo, sin servidor.
 
 ## Estructura
@@ -66,7 +67,17 @@ Para un *development build* propio (ícono, nombre y permisos reales de la app):
 npx expo run:android      # compila e instala en un emulador, tablet o teléfono conectado por USB
 ```
 
-Para generar un APK instalable sin Android Studio: `npx eas-cli@latest build -p android --profile preview`.
+Para generar el APK instalable (arm64-v8a) en esta máquina:
+
+```bash
+npx expo prebuild --platform android --clean
+cd android && ./gradlew assembleRelease   # android/app/build/outputs/apk/release/app-release.apk
+adb install -r app/build/outputs/apk/release/app-release.apk
+```
+
+En la nube con EAS: `npx eas-cli@latest build -p android --profile preview`.
+
+El ícono y el splash se regeneran con `python3 scripts/make-brand.py assets vista.png`.
 
 Antes de entregar cambios: `npx tsc --noEmit` y `npx expo lint`.
 

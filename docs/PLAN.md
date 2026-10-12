@@ -114,14 +114,15 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [x] Registro de envíos (`deliveries`, migración v7) con estado y error; los reportes y resúmenes fallidos se reintentan al abrir la app y en segundo plano (hasta 4 intentos en 3 días)
 - [x] WhatsApp: celular del admin ("WhatsApp al admin" en reportes) y plantillas editables de los mensajes para clientes con `{nombre}`, `{fecha}`, `{monto}` y `{gimnasio}`
 
-### Fase 8 — Pulido y entrega
+### Fase 8 — Pulido y entrega (EGO-10)
 
-- [ ] Ícono, splash y colores de marca de EGO
-- [ ] Adaptar a tablet las pantallas heredadas de la tienda (almacén y venta en dos columnas)
-- [ ] Respaldo y restauración manual de la base de datos (exportar e importar un archivo)
-- [ ] Perfil `preview` de EAS y APK firmado
-- [ ] Actualizar los paquetes de Expo con versiones de parche pendientes (`npx expo install --check`)
-- [ ] Pruebas completas en la tablet, en horizontal, vertical, tema claro y oscuro
+- [x] Ícono, splash y marca de EGO (pesa + "EGO" en el verde de la app), aprobados antes de aplicarlos; se generan con `scripts/make-brand.py`
+- [x] Pantallas heredadas de la tienda adaptadas a tablet: venta en dos columnas (búsqueda y carrito) y almacén en cuadrícula
+- [x] Respaldo y restauración manual de la base de datos (exportar e importar un archivo `.db`) desde Ajustes
+- [x] Paquetes de Expo actualizados a las versiones de parche esperadas (`expo-doctor` pasa los 21 chequeos) y `expo-system-ui` para el tema claro/oscuro nativo
+- [x] Perfiles `preview` (APK) y `production` (AAB) de EAS, y APK de release compilado localmente para arm64-v8a
+- [ ] Pruebas completas del APK en la tablet: vertical, horizontal, claro, oscuro, notificaciones, segundo plano y Telegram
+- [ ] Firma propia para publicar (hoy el APK de release se firma con la clave de depuración)
 
 ### Futuro
 

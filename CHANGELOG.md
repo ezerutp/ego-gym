@@ -2,6 +2,23 @@
 
 Cambios visibles de la app por etapa. Durante una fase, los cambios se acumulan en "Sin publicar" y pasan a la sección de la fase cuando esta se cierra.
 
+## Fase 8 — Pulido y entrega (2026-10-12)
+
+### Agregado
+
+- Ícono y pantalla de inicio (splash) con la marca de EGO.
+- Respaldo de la base de datos desde Ajustes: exportar un archivo para guardarlo en Drive, correo o WhatsApp, y restaurarlo en la tablet. Muestra la fecha del último respaldo.
+- APK de la app para instalar en la tablet (arm64-v8a).
+
+### Cambiado
+
+- En tablet, la venta de la tienda muestra la búsqueda y el carrito lado a lado, y el almacén se ve en cuadrícula.
+- El tema claro u oscuro también se aplica al fondo nativo de Android.
+
+### Corregido
+
+- Guardar Ajustes ya no reemplaza valores que cambiaron en segundo plano (como el último resumen enviado por Telegram).
+
 ## Fase 7 — Integraciones (2026-10-12)
 
 ### Agregado
