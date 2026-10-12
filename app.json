@@ -1,0 +1,76 @@
+{
+  "expo": {
+    "name": "EGO Gym",
+    "slug": "ego-gym",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0B7A5C",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "pe.egogym.app",
+      "permissions": [
+        "CAMERA",
+        "POST_NOTIFICATIONS"
+      ],
+      "versionCode": 1
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-sharing",
+      "expo-image",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "EGO Gym usa la cámara para escanear códigos de barras.",
+          "recordAudioAndroid": false,
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "EGO Gym usa la cámara para fotografiar a tus clientes y productos.",
+          "photosPermission": "EGO Gym usa tus fotos para la imagen de clientes y productos.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#0B7A5C"
+        }
+      ],
+      "expo-font",
+      "./plugins/withArm64Only",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#0B7A5C"
+        }
+      ],
+      "expo-background-task"
+    ],
+    "scheme": "egogym",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
