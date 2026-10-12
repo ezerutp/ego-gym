@@ -2,10 +2,12 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { ProductThumb } from '@/components/ui';
+import { ProductThumb, type IconName } from '@/components/ui';
 import { makeStyles, spacing, useTheme } from '@/theme';
 
-export function PhotoPicker({ uri, onChange }: { uri: string | null; onChange: (uri: string) => void }) {
+type Props = { uri: string | null; onChange: (uri: string) => void; title?: string; icon?: IconName };
+
+export function PhotoPicker({ uri, onChange, title = 'Foto del producto', icon }: Props) {
   const styles = useStyles();
   const { colors } = useTheme();
   const fromCamera = async () => {
@@ -21,7 +23,7 @@ export function PhotoPicker({ uri, onChange }: { uri: string | null; onChange: (
   };
 
   const choose = () =>
-    Alert.alert('Foto del producto', undefined, [
+    Alert.alert(title, undefined, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Galería', onPress: fromLibrary },
       { text: 'Tomar foto', onPress: fromCamera },
@@ -29,7 +31,7 @@ export function PhotoPicker({ uri, onChange }: { uri: string | null; onChange: (
 
   return (
     <Pressable onPress={choose} style={styles.wrap}>
-      <ProductThumb uri={uri} size={96} />
+      <ProductThumb uri={uri} size={96} icon={icon} />
       <View style={styles.badge}>
         <Ionicons name="camera" size={16} color={colors.white} />
       </View>

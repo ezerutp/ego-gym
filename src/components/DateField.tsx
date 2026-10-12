@@ -5,9 +5,17 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { describeExpiry, formatDay, parseIsoDay, toIsoDay } from '@/lib/format';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
-type Props = { label: string; value: string | null; onChange: (value: string | null) => void; placeholder?: string };
+type Props = {
+  label: string;
+  value: string | null;
+  onChange: (value: string | null) => void;
+  placeholder?: string;
+  /** Subtitle under the date; defaults to how far the expiry is. */
+  describe?: (value: string) => string;
+  maximumDate?: Date;
+};
 
-export function DateField({ label, value, onChange, placeholder = 'Sin fecha' }: Props) {
+export function DateField({ label, value, onChange, placeholder = 'Sin fecha', describe = describeExpiry, maximumDate }: Props) {
   const styles = useStyles();
   const { colors } = useTheme();
   const open = () => {
@@ -15,6 +23,7 @@ export function DateField({ label, value, onChange, placeholder = 'Sin fecha' }:
       value: value ? parseIsoDay(value) : new Date(),
       mode: 'date',
       title: label,
+      maximumDate,
       onValueChange: (_event, date) => onChange(toIsoDay(date)),
     });
   };
@@ -26,7 +35,7 @@ export function DateField({ label, value, onChange, placeholder = 'Sin fecha' }:
         <Ionicons name="calendar-outline" size={20} color={colors.muted} />
         <View style={{ flex: 1 }}>
           <Text style={[styles.value, !value && { color: colors.faint }]}>{value ? formatDay(value) : placeholder}</Text>
-          {value && <Text style={styles.sub}>{describeExpiry(value)}</Text>}
+          {value && <Text style={styles.sub}>{describe(value)}</Text>}
         </View>
         {value && (
           <Pressable hitSlop={10} onPress={() => onChange(null)}>

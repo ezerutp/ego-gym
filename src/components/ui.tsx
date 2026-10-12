@@ -74,7 +74,7 @@ export function Card({ children, style, onPress }: { children: ReactNode; style?
   );
 }
 
-export function ProductThumb({ uri, size = 52 }: { uri: string | null; size?: number }) {
+export function ProductThumb({ uri, size = 52, icon = 'cube-outline' }: { uri: string | null; size?: number; icon?: IconName }) {
   const styles = useStyles();
   const { colors } = useTheme();
   return (
@@ -82,7 +82,7 @@ export function ProductThumb({ uri, size = 52 }: { uri: string | null; size?: nu
       {uri ? (
         <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={150} />
       ) : (
-        <Ionicons name="cube-outline" size={size * 0.45} color={colors.faint} />
+        <Ionicons name={icon} size={size * 0.45} color={colors.faint} />
       )}
     </View>
   );
