@@ -1,3 +1,5 @@
+import { File } from 'expo-file-system';
+
 const API = 'https://api.telegram.org';
 const TIMEOUT_MS = 20_000;
 
@@ -21,7 +23,9 @@ async function call<T>(token: string, method: string, body?: FormData | Record<s
     return json.result;
   } catch (e) {
     if (e instanceof TelegramError) throw e;
-    throw new TelegramError(controller.signal.aborted ? 'Telegram no respondió a tiempo. Revisa la conexión a internet.' : 'Sin conexión con Telegram. Revisa el internet de la tablet.');
+    if (controller.signal.aborted) throw new TelegramError('Telegram no respondió a tiempo. Revisa la conexión a internet.');
+    const detail = e instanceof Error ? ` (${e.message})` : '';
+    throw new TelegramError(`No se pudo comunicar con Telegram. Revisa el internet de la tablet${detail}.`);
   } finally {
     clearTimeout(timer);
   }
@@ -56,11 +60,11 @@ export function sendText(token: string, chatId: string, text: string) {
 }
 
 /** Sends a local file (`file://`) as a document or photo, with an optional caption (max 1024 characters). */
-export function sendFile(token: string, chatId: string, file: { uri: string; name: string; type: string }, as: 'document' | 'photo', caption?: string) {
+export function sendFile(token: string, chatId: string, uri: string, as: 'document' | 'photo', caption?: string) {
   const form = new FormData();
   form.append('chat_id', chatId);
-  // React Native's FormData uploads `{ uri, name, type }` objects as files.
-  form.append(as, file as unknown as Blob);
+  // The global fetch is expo/fetch, which rejects React Native's `{ uri, name, type }` parts but reads expo-file-system Files.
+  form.append(as, new File(uri));
   if (caption) form.append('caption', caption.slice(0, 1024));
   return call(token, as === 'photo' ? 'sendPhoto' : 'sendDocument', form);
 }

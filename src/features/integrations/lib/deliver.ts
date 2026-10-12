@@ -57,8 +57,7 @@ export async function sendReport(db: SQLiteDatabase, reportId: number, { asPdf, 
       if (!withPdf) return sendText(s.telegramToken, s.telegramChatId, report.text);
       const existing = report.pdf_uri && new File(report.pdf_uri).exists ? report.pdf_uri : null;
       const uri = existing ?? (await attachPdf(db, report.id, report.kind, report.period_start, report.period_end));
-      const name = `${report.title} ${report.period_start}.pdf`.replace(/\s+/g, '_');
-      return sendFile(s.telegramToken, s.telegramChatId, { uri, name, type: 'application/pdf' }, 'document', report.text);
+      return sendFile(s.telegramToken, s.telegramChatId, uri, 'document', report.text);
     },
     deliveryId,
   );
@@ -66,7 +65,7 @@ export async function sendReport(db: SQLiteDatabase, reportId: number, { asPdf, 
 
 /** Receipts are sent as the same image that is shared by WhatsApp. */
 export function sendReceiptImage(db: SQLiteDatabase, kind: 'receipt' | 'sale', refId: number, title: string, uri: string, caption: string) {
-  return tracked(db, kind, refId, title, (s) => sendFile(s.telegramToken, s.telegramChatId, { uri, name: `${title}.png`, type: 'image/png' }, 'photo', caption));
+  return tracked(db, kind, refId, title, (s) => sendFile(s.telegramToken, s.telegramChatId, uri, 'photo', caption));
 }
 
 export async function summaryText(db: SQLiteDatabase, settings: Settings) {
