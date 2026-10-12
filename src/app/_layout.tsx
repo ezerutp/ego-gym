@@ -8,6 +8,7 @@ import { DATABASE_NAME, migrateDb } from '@/db/schema';
 import { getSettings } from '@/db/settings';
 import { LockScreen } from '@/features/auth/components/LockScreen';
 import { session, useSession } from '@/features/auth/lib/session';
+import { runDueDeliveries } from '@/features/integrations/lib/deliver';
 import { registerReportsTask } from '@/features/reports/lib/background';
 import { runDueReports } from '@/features/reports/lib/runner';
 import { onNotificationTap, rescheduleAlerts, setupNotifications } from '@/lib/notifications';
@@ -111,15 +112,16 @@ function markActivity() {
   return false;
 }
 
-/** Scheduled reports also run on every launch and return to the app, as Android may delay the background task. */
+/** Scheduled reports and Telegram sends also run on every launch and return to the app, as Android may delay the background task. */
 function ReportsBootstrap() {
   const db = useSQLiteContext();
 
   useEffect(() => {
+    const run = () => runDueReports(db).then(() => runDueDeliveries(db)).catch(() => {});
     registerReportsTask();
-    runDueReports(db).catch(() => {});
+    run();
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') runDueReports(db).catch(() => {});
+      if (state === 'active') run();
     });
     return () => sub.remove();
   }, [db]);

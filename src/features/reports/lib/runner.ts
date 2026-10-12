@@ -1,5 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { getSettings } from '@/db/settings';
+import { sendReport, telegramReady } from '@/features/integrations/lib/deliver';
 import { insertReport, listSchedules, markScheduleRun } from '@/features/reports/db/reports';
 import { buildReport, reportText, type ReportKind } from '@/features/reports/lib/build';
 import { attachPdf } from '@/features/reports/lib/pdf';
@@ -37,6 +39,8 @@ export async function runDueReports(db: SQLiteDatabase) {
       await markScheduleRun(db, schedule.id, key);
       const report = await db.getFirstAsync<{ title: string }>('SELECT title FROM reports WHERE id = ?', id);
       await notifyReportReady(db, report?.title ?? 'Reporte', id).catch(() => {});
+      const settings = await getSettings(db);
+      if (settings.telegramSendReports && telegramReady(settings)) await sendReport(db, id, { asPdf: schedule.format === 'pdf' });
       generated++;
     }
   } finally {

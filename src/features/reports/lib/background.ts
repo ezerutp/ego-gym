@@ -3,6 +3,7 @@ import * as SQLite from 'expo-sqlite';
 import * as TaskManager from 'expo-task-manager';
 
 import { DATABASE_NAME, migrateDb } from '@/db/schema';
+import { runDueDeliveries } from '@/features/integrations/lib/deliver';
 import { runDueReports } from '@/features/reports/lib/runner';
 
 const REPORTS_TASK = 'ego-gym-reports';
@@ -13,6 +14,7 @@ TaskManager.defineTask(REPORTS_TASK, async () => {
     const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
     await migrateDb(db);
     await runDueReports(db);
+    await runDueDeliveries(db);
     return BackgroundTask.BackgroundTaskResult.Success;
   } catch {
     return BackgroundTask.BackgroundTaskResult.Failed;
