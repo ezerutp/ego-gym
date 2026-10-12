@@ -48,7 +48,11 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
   const save = async () => {
     setSaving(true);
     try {
-      await saveSettings(db, form);
+      // Only what changed here: other keys may have been updated meanwhile (Telegram, backups).
+      const changed = Object.fromEntries(
+        Object.entries(form).filter(([key, value]) => JSON.stringify(value) !== JSON.stringify(initial[key as keyof Settings])),
+      );
+      await saveSettings(db, changed);
       if (form.notificationsEnabled) await setupNotifications();
       await rescheduleAlerts(db);
       Alert.alert('Guardado', 'La configuración se actualizó.');
