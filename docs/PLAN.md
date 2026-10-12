@@ -45,7 +45,7 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [x] Primer arranque: crear el usuario admin con su PIN
 - [x] Pantalla de bloqueo con selección de usuario y teclado de PIN, pensada para tablet (espera de 30 s tras 5 intentos fallidos)
 - [x] Sesión activa en memoria, botón "Cambiar usuario" (en Más) o "Bloquear" (en la barra lateral) y bloqueo automático tras X minutos sin uso (configurable en Ajustes)
-- [x] Hook `useCan(permiso)` y rutas protegidas con `Stack.Protected` según la sesión y el rol
+- [x] Hook `useCan(permiso)`, bloqueo como capa sobre la app y `Stack.Protected` para las pantallas de admin
 - [x] Pantalla Usuarios (solo admin): crear, editar, desactivar y cambiar PIN, siempre con al menos un admin activo
 - [x] Registrar quién hizo cada venta (`user_id` en `sales`, "Atendió" en la boleta). Los pagos lo harán en la fase 4.
 

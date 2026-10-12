@@ -1,11 +1,12 @@
 import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider } from 'expo-router';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 import { DATABASE_NAME, migrateDb } from '@/db/schema';
 import { getSettings } from '@/db/settings';
+import { LockScreen } from '@/features/auth/components/LockScreen';
 import { session, useSession } from '@/features/auth/lib/session';
 import { onNotificationTap, rescheduleAlerts, setupNotifications } from '@/features/store/lib/notifications';
 import { useTheme } from '@/theme';
@@ -13,6 +14,7 @@ import { useTheme } from '@/theme';
 export default function RootLayout() {
   const { colors, dark } = useTheme();
   const user = useSession();
+  useCloseScreensOnLock(!!user);
   const base = dark ? DarkTheme : DefaultTheme;
   // Navigation containers paint their own background; match it to avoid flashes between screens.
   const navTheme = {
@@ -37,22 +39,22 @@ export default function RootLayout() {
               headerBackButtonDisplayMode: 'minimal',
             }}
           >
-            <Stack.Protected guard={!!user}>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="scan" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
-              <Stack.Screen name="product/new" options={{ title: 'Nuevo producto' }} />
-              <Stack.Screen name="product/[id]" options={{ title: 'Producto' }} />
-              <Stack.Screen name="receipt/[id]" options={{ title: 'Boleta' }} />
-              <Stack.Protected guard={user?.role === 'admin'}>
-                <Stack.Screen name="settings" options={{ title: 'Ajustes' }} />
-                <Stack.Screen name="users/index" options={{ title: 'Usuarios' }} />
-                <Stack.Screen name="users/[id]" options={{ title: 'Usuario' }} />
-              </Stack.Protected>
-            </Stack.Protected>
-            <Stack.Protected guard={!user}>
-              <Stack.Screen name="lock" options={{ headerShown: false, animation: 'fade' }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="scan" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
+            <Stack.Screen name="product/new" options={{ title: 'Nuevo producto' }} />
+            <Stack.Screen name="product/[id]" options={{ title: 'Producto' }} />
+            <Stack.Screen name="receipt/[id]" options={{ title: 'Boleta' }} />
+            <Stack.Protected guard={user?.role === 'admin'}>
+              <Stack.Screen name="settings" options={{ title: 'Ajustes' }} />
+              <Stack.Screen name="users/index" options={{ title: 'Usuarios' }} />
+              <Stack.Screen name="users/[id]" options={{ title: 'Usuario' }} />
             </Stack.Protected>
           </Stack>
+          {!user && (
+            <View style={StyleSheet.absoluteFill}>
+              <LockScreen />
+            </View>
+          )}
         </View>
       </SQLiteProvider>
     </ThemeProvider>
@@ -71,6 +73,15 @@ function NotificationBootstrap() {
   }, [db]);
 
   return null;
+}
+
+/** When the session ends, closes pushed screens (camera, forms) so the next user starts at home. */
+function useCloseScreensOnLock(signedIn: boolean) {
+  const wasSignedIn = useRef(signedIn);
+  useEffect(() => {
+    if (wasSignedIn.current && !signedIn && router.canDismiss()) router.dismissAll();
+    wasSignedIn.current = signedIn;
+  }, [signedIn]);
 }
 
 function markActivity() {

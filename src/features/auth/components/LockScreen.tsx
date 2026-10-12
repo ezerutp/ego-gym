@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, BackHandler, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Card, Field } from '@/components/ui';
@@ -12,18 +12,33 @@ import { UserAvatar } from '@/features/auth/components/UserAvatar';
 import { createUser, listUsers, PIN_LENGTH, ROLE_LABELS, verifyPin, type User } from '@/features/auth/db/users';
 import { session } from '@/features/auth/lib/session';
 import { useIsWide } from '@/lib/layout';
-import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_SECONDS = 30;
 
-export default function LockScreen() {
+/** Drawn over the whole app while nobody is signed in, outside of navigation on purpose. */
+export function LockScreen() {
   const styles = useStyles();
-  const { data, reload } = useFocusQuery(async (db) => {
-    const [users, settings] = await Promise.all([listUsers(db), getSettings(db)]);
-    return { users, gymName: settings.storeName };
-  });
+  const db = useSQLiteContext();
+  const [data, setData] = useState<{ users: User[]; gymName: string }>();
+  const [version, setVersion] = useState(0);
+  const reload = () => setVersion((v) => v + 1);
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all([listUsers(db), getSettings(db)]).then(([users, settings]) => {
+      if (alive) setData({ users, gymName: settings.storeName });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [db, version]);
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
+    return () => sub.remove();
+  }, []);
 
   if (!data) return <SafeAreaView style={styles.safe} />;
   if (data.users.length === 0) return <FirstAdminSetup gymName={data.gymName} onCreated={reload} />;
@@ -67,7 +82,14 @@ function UserLogin({ users, gymName }: { users: User[]; gymName: string }) {
 
   const submit = async (value: string) => {
     if (!selected) return;
-    if (await verifyPin(db, selected.id, value)) {
+    let valid = false;
+    try {
+      valid = await verifyPin(db, selected.id, value);
+    } catch (e) {
+      setPin('');
+      return Alert.alert('No se pudo verificar el PIN', String(e));
+    }
+    if (valid) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       session.signIn(selected);
       return;
@@ -169,7 +191,13 @@ function FirstAdminSetup({ gymName, onCreated }: { gymName: string; onCreated: (
       setStep('pin');
       return;
     }
-    const id = await createUser(db, { name, role: 'admin', pin: value });
+    let id: number;
+    try {
+      id = await createUser(db, { name, role: 'admin', pin: value });
+    } catch (e) {
+      setPin('');
+      return Alert.alert('No se pudo crear el administrador', String(e));
+    }
     session.signIn({ id, name: name.trim(), role: 'admin' });
     onCreated();
   };
