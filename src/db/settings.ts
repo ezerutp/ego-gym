@@ -15,6 +15,8 @@ export type Settings = {
   syncEnabled: boolean;
   /** Minutes without touches before the tablet locks; 0 never locks. */
   autoLockMinutes: number;
+  /** A membership counts as "por vencer" this many days before it ends. */
+  membershipWarningDays: number;
   productSources: ProductSourceId[];
 };
 
@@ -30,6 +32,7 @@ export const DEFAULT_SETTINGS: Settings = {
   receiptFooter: '¡Gracias por su compra!',
   syncEnabled: false,
   autoLockMinutes: 5,
+  membershipWarningDays: 5,
   productSources: PRODUCT_SOURCES.map((s) => s.id),
 };
 

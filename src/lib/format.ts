@@ -18,6 +18,16 @@ export function toIsoDay(d: Date) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+export function todayIso() {
+  return toIsoDay(new Date());
+}
+
+export function addDays(value: string, days: number) {
+  const d = parseIsoDay(value);
+  d.setDate(d.getDate() + days);
+  return toIsoDay(d);
+}
+
 export function parseIsoDay(value: string) {
   const [y, m, d] = value.split('-').map(Number);
   return new Date(y, m - 1, d);
