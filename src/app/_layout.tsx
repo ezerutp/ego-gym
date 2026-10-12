@@ -13,8 +13,6 @@ import { useTheme } from '@/theme';
 
 export default function RootLayout() {
   const { colors, dark } = useTheme();
-  const user = useSession();
-  useCloseScreensOnLock(!!user);
   const base = dark ? DarkTheme : DefaultTheme;
   // Navigation containers paint their own background; match it to avoid flashes between screens.
   const navTheme = {
@@ -48,11 +46,7 @@ export default function RootLayout() {
             <Stack.Screen name="users/index" options={{ title: 'Usuarios' }} />
             <Stack.Screen name="users/[id]" options={{ title: 'Usuario' }} />
           </Stack>
-          {!user && (
-            <View style={StyleSheet.absoluteFill}>
-              <LockScreen />
-            </View>
-          )}
+          <LockGate />
         </View>
       </SQLiteProvider>
     </ThemeProvider>
@@ -73,13 +67,26 @@ function NotificationBootstrap() {
   return null;
 }
 
-/** When the session ends, closes pushed screens (camera, forms) so the next user starts at home. */
-function useCloseScreensOnLock(signedIn: boolean) {
-  const wasSignedIn = useRef(signedIn);
+/**
+ * Owns the session subscription so signing in or out never re-renders the root layout:
+ * on the phone, a root re-render with the navigator inside was computed but never shown.
+ */
+function LockGate() {
+  const user = useSession();
+  const wasSignedIn = useRef(!!user);
+
   useEffect(() => {
-    if (wasSignedIn.current && !signedIn && router.canDismiss()) router.dismissAll();
-    wasSignedIn.current = signedIn;
-  }, [signedIn]);
+    // Closes pushed screens (camera, forms) so the next user starts at home.
+    if (wasSignedIn.current && !user && router.canDismiss()) router.dismissAll();
+    wasSignedIn.current = !!user;
+  }, [user]);
+
+  if (user) return null;
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <LockScreen />
+    </View>
+  );
 }
 
 function markActivity() {
