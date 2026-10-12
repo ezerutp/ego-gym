@@ -2,6 +2,20 @@
 
 Cambios visibles de la app por etapa. Durante una fase, los cambios se acumulan en "Sin publicar" y pasan a la sección de la fase cuando esta se cierra.
 
+## Fase 5 — Inicio y avisos (2026-10-12)
+
+### Agregado
+
+- Campana en el Inicio con el número de pendientes, y una pantalla "Requiere atención" con las membresías por vencer, las deudas, las vencidas en los últimos 30 días y las alertas de la tienda.
+- Sección "Requiere atención" en el Inicio con los 5 casos más urgentes.
+- En cada aviso, un botón de WhatsApp con el recordatorio ya escrito para el cliente (vencimiento, membresía vencida o deuda) y un botón directo para renovar o cobrar.
+- El resumen diario (notificación) incluye membresías por vencer y clientes con deuda, además del almacén.
+- Recordatorios por notificación cuando una membresía está por vencer y el mismo día que vence.
+
+### Cambiado
+
+- Las notificaciones ya no son solo del almacén: el canal se llama "Alertas de EGO Gym" y la sección de Ajustes, "Alertas y notificaciones".
+
 ## Fase 4 — Cobros, deudas y boletas (2026-10-12)
 
 ### Agregado

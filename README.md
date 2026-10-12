@@ -11,7 +11,8 @@ App Android (React Native + Expo) para gestionar un gimnasio desde una tablet en
 - **Clientes y prospectos**: registro con foto, DNI, celular, fecha de nacimiento, contacto de emergencia, notas, estado y origen. Lista con búsqueda y filtros por estado, y ficha con botones para WhatsApp y llamar. En tablet, la lista y la ficha se ven lado a lado.
 - **Planes, membresías y coaches**: el administrador configura los planes (vienen Mensual, Interdiario, Pase diario y Promo dúo) y los coaches. Desde la ficha se inscribe o renueva al cliente, con personalizado opcional. La membresía se ve como vigente, por vencer o vencida, con filtros en Clientes y un resumen en el Inicio.
 - **Cobros, deudas y boletas**: el botón central **Cobrar** abre una venta de la tienda o el cobro de una membresía. El pago se registra al inscribir o como abono, con pagos parciales y su método. La deuda se calcula sola, y cada pago genera una boleta de membresía para compartir por WhatsApp.
-- **Próximamente**: notificaciones en la app, reportes programados e integraciones (Telegram y WhatsApp).
+- **Avisos**: campana en el Inicio y pantalla "Requiere atención" con membresías por vencer, vencidas, deudas y alertas de la tienda. Cada aviso trae un recordatorio por WhatsApp ya escrito y un botón para renovar o cobrar. El resumen diario y los recordatorios de vencimiento llegan como notificación (solo en el APK).
+- **Próximamente**: reportes programados e integraciones (Telegram y WhatsApp).
 - **Todo es local**: SQLite en el dispositivo, sin servidor.
 
 ## Estructura
@@ -29,16 +30,18 @@ src/
     member/            Ficha, formulario, inscripción y abonos de clientes
     payment/[id].tsx   Boleta de membresía compartible
     charge.tsx         Cobrar: venta de tienda o membresía
+    notifications.tsx  Requiere atención: avisos del gimnasio y la tienda
     plans/             Planes (solo admin)
     coaches/           Coaches (solo admin)
   features/
+    alerts/            Lo que requiere atención y los mensajes de recordatorio
     auth/              Usuarios, PIN, sesión y permisos
     members/           Clientes y prospectos: base de datos, contacto y componentes
     memberships/       Planes, coaches, membresías y su estado
     payments/          Pagos, deudas y boletas de membresía
     store/             Base de datos, lógica y componentes de la tienda
   db/                  Esquema SQLite y ajustes
-  lib/                 Formatos, consultas al enfocar y diseño responsive
+  lib/                 Formatos, consultas al enfocar, diseño responsive y notificaciones
   components/          UI reutilizable (incluye el papel de las boletas)
   theme.ts             Colores, tipografía y espaciados
 ```
