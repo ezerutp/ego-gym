@@ -1,5 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { SUBSCRIPTION_PAID_SQL, SUBSCRIPTION_TOTAL_SQL } from '@/features/payments/db/payments';
+
 export type MemberStatus = 'prospect' | 'active' | 'inactive';
 
 export type Member = {
@@ -29,13 +31,14 @@ export function fullName(m: Pick<Member, 'first_name' | 'last_name'>) {
   return `${m.first_name} ${m.last_name}`.trim();
 }
 
-export type MemberListItem = Member & { membership_end: string | null };
+export type MemberListItem = Member & { membership_end: string | null; debt: number };
 
 export type MemberFilter =
-  | { status?: MemberStatus; membership?: undefined }
-  | { status?: undefined; membership: { kind: 'expiring' | 'expired'; today: string; warningLimit: string } };
+  | { status?: MemberStatus; membership?: undefined; withDebt?: undefined }
+  | { status?: undefined; membership: { kind: 'expiring' | 'expired'; today: string; warningLimit: string }; withDebt?: undefined }
+  | { status?: undefined; membership?: undefined; withDebt: true };
 
-export async function listMembers(db: SQLiteDatabase, { search = '', status, membership }: { search?: string } & MemberFilter = {}) {
+export async function listMembers(db: SQLiteDatabase, { search = '', status, membership, withDebt }: { search?: string } & MemberFilter = {}) {
   const term = `%${search.trim()}%`;
   const params: (string | number)[] = [term, term, term, term];
   let where = `(first_name || ' ' || last_name LIKE ? OR last_name LIKE ? OR IFNULL(dni, '') LIKE ? OR IFNULL(phone, '') LIKE ?)`;
@@ -50,11 +53,15 @@ export async function listMembers(db: SQLiteDatabase, { search = '', status, mem
     where += " AND status = 'active' AND membership_end < ?";
     params.push(membership.today);
   }
+  if (withDebt) where += ' AND debt > 0.009';
   return db.getAllAsync<MemberListItem>(
     `SELECT * FROM (
-       SELECT m.*, (SELECT MAX(end_date) FROM subscriptions s WHERE s.member_id = m.id) AS membership_end FROM members m
+       SELECT m.*,
+         (SELECT MAX(end_date) FROM subscriptions s WHERE s.member_id = m.id) AS membership_end,
+         IFNULL((SELECT SUM(MAX(${SUBSCRIPTION_TOTAL_SQL} - ${SUBSCRIPTION_PAID_SQL}, 0)) FROM subscriptions s WHERE s.member_id = m.id), 0) AS debt
+       FROM members m
      ) WHERE ${where}
-     ORDER BY ${membership ? 'membership_end, ' : ''}first_name COLLATE NOCASE, last_name COLLATE NOCASE`,
+     ORDER BY ${withDebt ? 'debt DESC, ' : membership ? 'membership_end, ' : ''}first_name COLLATE NOCASE, last_name COLLATE NOCASE`,
     ...params,
   );
 }

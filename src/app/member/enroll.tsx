@@ -7,6 +7,8 @@ import { DateField } from '@/components/DateField';
 import { Button, Card, Chip, EmptyState, Field, SectionTitle } from '@/components/ui';
 import { getSettings } from '@/db/settings';
 import { session } from '@/features/auth/lib/session';
+import { PaymentMethodPicker } from '@/features/payments/components/PaymentMethodPicker';
+import type { PaymentMethod } from '@/features/payments/db/payments';
 import { MemberAvatar } from '@/features/members/components/MemberBits';
 import { fullName, getMember } from '@/features/members/db/members';
 import { listCoaches } from '@/features/memberships/db/coaches';
@@ -52,9 +54,15 @@ function EnrollForm({ member, plans, coaches, latest, settings }: EnrollData) {
   const [coachId, setCoachId] = useState<number | null>(latest?.coach_id ?? null);
   const [personalPrice, setPersonalPrice] = useState(latest?.personal_price ? String(latest.personal_price) : '');
   const [notes, setNotes] = useState('');
+  const [paidNow, setPaidNow] = useState<string | null>(null);
+  const [method, setMethod] = useState<PaymentMethod>('cash');
   const [saving, setSaving] = useState(false);
   const current = membershipState(latest?.end_date ?? null, settings.membershipWarningDays);
   const total = (parseMoney(price) ?? 0) + (withPersonal ? (parseMoney(personalPrice) ?? 0) : 0);
+  // Follows the total until the user types a different amount (a partial payment).
+  const paidText = paidNow ?? (total > 0 ? String(total) : '');
+  const paid = parseMoney(paidText) ?? 0;
+  const pending = Math.max(Math.round((total - paid) * 100) / 100, 0);
 
   const choosePlan = (p: Plan) => {
     setPlan(p);
@@ -76,10 +84,11 @@ function EnrollForm({ member, plans, coaches, latest, settings }: EnrollData) {
     if (end < start) return Alert.alert('Fechas inválidas', 'La fecha de fin no puede ser anterior al inicio.');
     if (withPersonal && !coachId) return Alert.alert('Elige un coach', 'Selecciona el coach del personalizado.');
     if (withPersonal && (personalAmount == null || personalAmount <= 0)) return Alert.alert('Falta el precio', 'Escribe el precio del personalizado.');
+    if (paid > total) return Alert.alert('Monto mayor al total', `El pago no puede ser mayor a ${money(total)}.`);
 
     setSaving(true);
     try {
-      await createSubscription(
+      const { paymentId } = await createSubscription(
         db,
         {
           memberId: member.id,
@@ -90,10 +99,12 @@ function EnrollForm({ member, plans, coaches, latest, settings }: EnrollData) {
           price: amount,
           notes,
           personal: withPersonal && coachId ? { coachId, price: personalAmount! } : null,
+          payment: paid > 0 ? { amount: paid, method } : null,
         },
         session.get()?.id ?? null,
       );
-      router.back();
+      if (paymentId) router.replace({ pathname: '/payment/[id]', params: { id: paymentId, fresh: '1' } });
+      else router.back();
     } catch (e) {
       Alert.alert('No se pudo guardar', String(e));
     } finally {
@@ -175,8 +186,25 @@ function EnrollForm({ member, plans, coaches, latest, settings }: EnrollData) {
           )}
         </View>
       </Card>
-      <Text style={font.small}>El cobro y la boleta se registrarán en la siguiente etapa; por ahora se guarda la membresía y su precio acordado.</Text>
-      <Button title={latest ? 'Renovar membresía' : 'Inscribir'} icon="checkmark" loading={saving} onPress={save} />
+
+      <Card style={{ gap: spacing.lg }}>
+        <Text style={font.h3}>Pago ahora</Text>
+        <Field
+          label="Monto pagado"
+          prefix="S/"
+          value={paidText}
+          onChangeText={setPaidNow}
+          keyboardType="decimal-pad"
+          hint={pending > 0 ? `Quedará una deuda de ${money(pending)}` : 'Pago completo'}
+        />
+        <PaymentMethodPicker value={method} onChange={setMethod} />
+      </Card>
+      <Button
+        title={paid > 0 ? `${latest ? 'Renovar' : 'Inscribir'} y cobrar ${money(paid)}` : latest ? 'Renovar sin cobrar' : 'Inscribir sin cobrar'}
+        icon="checkmark"
+        loading={saving}
+        onPress={save}
+      />
     </View>
   );
 

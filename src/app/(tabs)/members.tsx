@@ -10,24 +10,27 @@ import { MemberRow } from '@/features/members/components/MemberBits';
 import { countMembersByStatus, listMembers, type MemberFilter, type MemberStatus } from '@/features/members/db/members';
 import { getSettings } from '@/db/settings';
 import { countMembershipAlerts } from '@/features/memberships/db/subscriptions';
+import { countDebts } from '@/features/payments/db/payments';
 import { addDays, todayIso } from '@/lib/format';
 import { useIsWide } from '@/lib/layout';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
-type FilterKey = MemberStatus | 'all' | 'expiring' | 'expired';
+type FilterKey = MemberStatus | 'all' | 'expiring' | 'expired' | 'debt';
 
 const FILTERS: { key: FilterKey; label: string }[] = [
   { key: 'all', label: 'Todos' },
   { key: 'active', label: 'Activos' },
   { key: 'expiring', label: 'Por vencer' },
   { key: 'expired', label: 'Vencidos' },
+  { key: 'debt', label: 'Con deuda' },
   { key: 'prospect', label: 'Prospectos' },
   { key: 'inactive', label: 'Inactivos' },
 ];
 
 function toMemberFilter(key: FilterKey, today: string, warningLimit: string): MemberFilter {
   if (key === 'all') return {};
+  if (key === 'debt') return { withDebt: true };
   if (key === 'expiring' || key === 'expired') return { membership: { kind: key, today, warningLimit } };
   return { status: key };
 }
@@ -44,12 +47,13 @@ export default function MembersScreen() {
       const { membershipWarningDays } = await getSettings(db);
       const today = todayIso();
       const warningLimit = addDays(today, membershipWarningDays);
-      const [members, counts, alerts] = await Promise.all([
+      const [members, counts, alerts, debts] = await Promise.all([
         listMembers(db, { search, ...toMemberFilter(filter, today, warningLimit) }),
         countMembersByStatus(db),
         countMembershipAlerts(db, today, warningLimit),
+        countDebts(db),
       ]);
-      return { members, counts: { ...counts, ...alerts }, warningDays: membershipWarningDays };
+      return { members, counts: { ...counts, ...alerts, debt: debts.members }, warningDays: membershipWarningDays };
     },
     [search, filter],
   );
