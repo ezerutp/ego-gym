@@ -80,7 +80,7 @@ export async function rescheduleAlerts(db: SQLiteDatabase) {
     if (lowCount) parts.push(`${lowCount} con poco stock`);
     if (expCount) parts.push(`${expCount} por vencer o vencidos`);
     await Notifications.scheduleNotificationAsync({
-      content: { title: 'Resumen de tu almacén', body: `Tienes ${parts.join(' y ')}.`, data: { url: '/alerts' } },
+      content: { title: 'Resumen de tu almacén', body: `Tienes ${parts.join(' y ')}.`, data: { url: '/store/alerts' } },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DAILY,
         hour: settings.notifyHour,

@@ -161,7 +161,7 @@ export default function ScanScreen() {
                 style={styles.cartBar}
                 onPress={() => {
                   router.back();
-                  router.navigate('/sell');
+                  router.navigate('/store/sell');
                 }}
               >
                 <View style={styles.cartCount}>

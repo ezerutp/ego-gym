@@ -11,7 +11,7 @@ import { formatDateTime, money, receiptNumber } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
-export default function HomeScreen() {
+export default function StoreSummaryScreen() {
   const styles = useStyles();
   const { colors, font } = useTheme();
   const { data } = useFocusQuery(async (db) => {
@@ -33,12 +33,10 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
-            <Text style={font.small}>{greeting()}</Text>
-            <Text style={font.title} numberOfLines={1}>
-              {settings.storeName}
-            </Text>
+            <Text style={font.title}>Tienda</Text>
+            <Text style={font.small}>Resumen de hoy</Text>
           </View>
-          <Pressable onPress={() => router.push('/alerts')} style={styles.bell} hitSlop={8}>
+          <Pressable onPress={() => router.navigate('/store/alerts')} style={styles.bell} hitSlop={8}>
             <Ionicons name="notifications-outline" size={24} color={colors.ink} />
             {alertCount > 0 && <View style={styles.bellDot} />}
           </Pressable>
@@ -59,10 +57,10 @@ export default function HomeScreen() {
         <View style={styles.actions}>
           <QuickAction icon="add-circle" label="Ingresar productos" onPress={() => router.push({ pathname: '/scan', params: { mode: 'add' } })} />
           <QuickAction icon="cart" label="Nueva venta" onPress={() => router.push({ pathname: '/scan', params: { mode: 'sell' } })} />
-          <QuickAction icon="cube" label="Ver almacén" onPress={() => router.navigate('/inventory')} />
+          <QuickAction icon="cube" label="Ver almacén" onPress={() => router.navigate('/store/inventory')} />
         </View>
 
-        <SectionTitle title="Alertas" action={alertCount ? 'Ver todas' : undefined} onAction={() => router.push('/alerts')} />
+        <SectionTitle title="Alertas" action={alertCount ? 'Ver todas' : undefined} onAction={() => router.navigate('/store/alerts')} />
         <View style={styles.alertGrid}>
           <AlertTile
             icon="trending-down"
@@ -110,13 +108,6 @@ export default function HomeScreen() {
   );
 }
 
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Buenos días 👋';
-  if (h < 19) return 'Buenas tardes 👋';
-  return 'Buenas noches 👋';
-}
-
 function HeroStat({ label, value }: { label: string; value: string }) {
   const styles = useStyles();
   return (
@@ -143,7 +134,7 @@ function AlertTile({ icon, tone, value, label, detail }: { icon: IconName; tone:
   const fg = tone === 'warning' ? colors.warning : colors.danger;
   const bg = tone === 'warning' ? colors.warningSoft : colors.dangerSoft;
   return (
-    <Card style={{ flex: 1, gap: spacing.sm }} onPress={() => router.push('/alerts')}>
+    <Card style={{ flex: 1, gap: spacing.sm }} onPress={() => router.navigate('/store/alerts')}>
       <IconCircle icon={icon} color={fg} bg={bg} size={36} />
       <Text style={[font.title, { fontSize: 26 }]}>{value}</Text>
       <View>
