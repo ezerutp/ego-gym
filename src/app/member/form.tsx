@@ -1,11 +1,11 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { DateField } from '@/components/DateField';
 import { PhotoPicker } from '@/components/PhotoPicker';
-import { Button, Card, Field } from '@/components/ui';
+import { Button, Card, Chip, Field } from '@/components/ui';
 import { session } from '@/features/auth/lib/session';
 import {
   createMember,
@@ -22,7 +22,7 @@ import {
 import { describeAge, persistMemberPhoto } from '@/features/members/lib/contact';
 import { useIsWide } from '@/lib/layout';
 import { useFocusQuery } from '@/lib/useFocusQuery';
-import { makeStyles, radius, spacing, useTheme } from '@/theme';
+import { makeStyles, spacing, useTheme } from '@/theme';
 
 const STATUSES: MemberStatus[] = ['prospect', 'active', 'inactive'];
 
@@ -176,16 +176,6 @@ function MemberForm({ member }: { member: Member | null }) {
   );
 }
 
-function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
-  const styles = useStyles();
-  const { colors } = useTheme();
-  return (
-    <Pressable onPress={onPress} style={[styles.chip, selected && styles.chipSelected]}>
-      <Text style={[styles.chipText, selected && { color: colors.white }]}>{label}</Text>
-    </Pressable>
-  );
-}
-
 const useStyles = makeStyles(({ colors }) =>
   StyleSheet.create({
     content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: 48 },
@@ -197,16 +187,5 @@ const useStyles = makeStyles(({ colors }) =>
     half: { flexGrow: 1, flexBasis: 200 },
     label: { fontSize: 13, fontWeight: '600', color: colors.text },
     chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-    chip: {
-      paddingHorizontal: spacing.lg,
-      minHeight: 40,
-      justifyContent: 'center',
-      borderRadius: radius.pill,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-    },
-    chipSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
-    chipText: { fontSize: 14, fontWeight: '600', color: colors.text },
   }),
 );
