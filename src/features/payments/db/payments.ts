@@ -52,6 +52,16 @@ export function listSubscriptionPayments(db: SQLiteDatabase, subscriptionId: num
   );
 }
 
+export function listMemberPayments(db: SQLiteDatabase, memberId: number) {
+  return db.getAllAsync<Payment & { plan_name: string }>(
+    `SELECT p.*, u.name AS user_name, s.plan_name FROM payments p
+     JOIN subscriptions s ON s.id = p.subscription_id
+     LEFT JOIN users u ON u.id = p.user_id
+     WHERE p.member_id = ? ORDER BY p.id DESC`,
+    memberId,
+  );
+}
+
 export async function deletePayment(db: SQLiteDatabase, id: number) {
   await db.runAsync('DELETE FROM payments WHERE id = ?', id);
 }
