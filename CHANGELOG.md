@@ -2,6 +2,18 @@
 
 Cambios visibles de la app por etapa. Durante una fase, los cambios se acumulan en "Sin publicar" y pasan a la sección de la fase cuando esta se cierra.
 
+## Fase 7 — Integraciones (2026-10-12)
+
+### Agregado
+
+- Pantalla Integraciones (solo administrador) en Más.
+- Conexión con Telegram en tres pasos: crear el bot con @BotFather, pegar el token y enviarle /start desde el Telegram del administrador. Incluye un mensaje de prueba.
+- "Enviar al admin" por Telegram en las boletas de membresía, en las boletas de venta y en los reportes.
+- Los reportes programados y un resumen diario de avisos (por vencer, deudas y almacén) llegan solos al Telegram del administrador. Cada envío se puede activar o desactivar.
+- Registro de envíos recientes, con reintento de los que fallaron.
+- Celular del administrador para enviarle reportes por WhatsApp.
+- Los mensajes de WhatsApp para clientes (membresía por vencer, vencida y deuda) se pueden editar, con {nombre}, {fecha}, {monto} y {gimnasio}.
+
 ## Fase 6 — Reportes (2026-10-12)
 
 ### Agregado

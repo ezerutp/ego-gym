@@ -13,7 +13,7 @@ App Android (React Native + Expo) para gestionar un gimnasio desde una tablet en
 - **Cobros, deudas y boletas**: el botón central **Cobrar** abre una venta de la tienda o el cobro de una membresía. El pago se registra al inscribir o como abono, con pagos parciales y su método. La deuda se calcula sola, y cada pago genera una boleta de membresía para compartir por WhatsApp.
 - **Avisos**: campana en el Inicio y pantalla "Requiere atención" con membresías por vencer, vencidas, deudas y alertas de la tienda. Cada aviso trae un recordatorio por WhatsApp ya escrito y un botón para renovar o cobrar. El resumen diario y los recordatorios de vencimiento llegan como notificación (solo en el APK).
 - **Reportes**: resumen general, ventas, cobros y clientes por periodo, en PDF o texto para compartir. El administrador puede programarlos (diario, semanal o mensual): se generan solos al abrir la app o en segundo plano, y avisan con una notificación.
-- **Próximamente**: integraciones (envío automático por Telegram y plantillas de WhatsApp).
+- **Integraciones**: Telegram, conectado con un bot propio, recibe solos los reportes programados y el resumen diario, y se usa en el botón "Enviar al admin" de boletas y reportes. Los mensajes de WhatsApp para clientes son plantillas editables, y los reportes también se pueden mandar al celular del admin por WhatsApp.
 - **Todo es local**: SQLite en el dispositivo, sin servidor.
 
 ## Estructura
@@ -33,11 +33,13 @@ src/
     charge.tsx         Cobrar: venta de tienda o membresía
     notifications.tsx  Requiere atención: avisos del gimnasio y la tienda
     reports/           Reportes: generar, programar, historial (solo admin)
+    integrations.tsx   Telegram y WhatsApp (solo admin)
     plans/             Planes (solo admin)
     coaches/           Coaches (solo admin)
   features/
     alerts/            Lo que requiere atención y los mensajes de recordatorio
     auth/              Usuarios, PIN, sesión y permisos
+    integrations/      Telegram (Bot API), envíos y reintentos
     members/           Clientes y prospectos: base de datos, contacto y componentes
     memberships/       Planes, coaches, membresías y su estado
     payments/          Pagos, deudas y boletas de membresía
