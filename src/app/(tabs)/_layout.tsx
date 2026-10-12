@@ -59,7 +59,7 @@ function TabItem({ name, state, navigation, vertical }: TabBarProps & { name: ke
   );
 }
 
-function SellButton({ size }: { size: number }) {
+function ChargeButton({ size }: { size: number }) {
   const styles = useStyles();
   const { colors } = useTheme();
   const count = cartCount(useCart());
@@ -67,11 +67,11 @@ function SellButton({ size }: { size: number }) {
     <Pressable
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        router.push({ pathname: '/scan', params: { mode: 'sell' } });
+        router.push('/charge');
       }}
       style={({ pressed }) => [styles.sellButton, { width: size, height: size, borderRadius: size / 2 }, pressed && { transform: [{ scale: 0.94 }] }]}
     >
-      <Ionicons name="scan" size={size * 0.45} color={colors.white} />
+      <Ionicons name="cash" size={size * 0.45} color={colors.white} />
       {count > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{count}</Text>
@@ -91,9 +91,9 @@ function TabBar(props: TabBarProps) {
       <TabItem {...props} name="members" />
       <View style={styles.tab}>
         <View style={styles.sellLift}>
-          <SellButton size={62} />
+          <ChargeButton size={62} />
         </View>
-        <Text style={[styles.label, { color: colors.primary, marginTop: 2 }]}>Vender</Text>
+        <Text style={[styles.label, { color: colors.primary, marginTop: 2 }]}>Cobrar</Text>
       </View>
       <TabItem {...props} name="store" />
       <TabItem {...props} name="more" />
@@ -109,8 +109,8 @@ function SideRail(props: TabBarProps) {
     <View style={[styles.rail, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20, paddingLeft: insets.left + 12 }]}>
       <Text style={styles.brand}>EGO</Text>
       <View style={styles.railAction}>
-        <SellButton size={56} />
-        <Text style={[styles.label, { color: colors.primary }]}>Vender</Text>
+        <ChargeButton size={56} />
+        <Text style={[styles.label, { color: colors.primary }]}>Cobrar</Text>
       </View>
       <View style={styles.railTabs}>
         <TabItem {...props} name="index" />
