@@ -3,10 +3,12 @@ import type * as NotificationsModule from 'expo-notifications';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { Platform } from 'react-native';
 
-import type { Product } from '@/features/store/db/products';
 import { getSettings } from '@/db/settings';
-import { computeAlerts, groupAlerts, minStockFor } from '@/features/store/lib/alerts';
-import { parseIsoDay } from '@/lib/format';
+import { computeAttention } from '@/features/alerts/lib/attention';
+import { fullName, type Member } from '@/features/members/db/members';
+import type { Product } from '@/features/store/db/products';
+import { minStockFor } from '@/features/store/lib/alerts';
+import { parseIsoDay, todayIso } from '@/lib/format';
 
 const CHANNEL_ID = 'alertas';
 
@@ -40,7 +42,7 @@ export function onNotificationTap(open: (url: string) => void) {
 export async function sendTestNotification() {
   if (!Notifications || !(await setupNotifications())) return false;
   await Notifications.scheduleNotificationAsync({
-    content: { title: 'EGO Gym', body: 'Así se verán tus alertas de stock y vencimiento.' },
+    content: { title: 'EGO Gym', body: 'Así se verán tus alertas de membresías, deudas y almacén.' },
     trigger: { channelId: CHANNEL_ID },
   });
   return true;
@@ -50,8 +52,8 @@ export async function setupNotifications() {
   if (!Notifications) return false;
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
-      name: 'Alertas de almacén',
-      description: 'Poco stock y productos por vencer',
+      name: 'Alertas de EGO Gym',
+      description: 'Membresías por vencer, deudas, poco stock y productos por vencer',
       importance: Notifications.AndroidImportance.HIGH,
     });
   }
@@ -61,9 +63,12 @@ export async function setupNotifications() {
   return requested.granted;
 }
 
+/** Android keeps at most ~500 alarms per app; membership reminders take the nearest ones. */
+const MAX_MEMBER_REMINDERS = 60;
+
 /**
- * Local notifications carry fixed content, so every time stock or settings change we
- * cancel everything and rebuild: one daily summary plus one reminder per expiring product.
+ * Local notifications carry fixed content, so every time memberships, payments, stock or settings
+ * change we cancel everything and rebuild: one daily summary plus reminders per membership and product.
  */
 export async function rescheduleAlerts(db: SQLiteDatabase) {
   if (!Notifications) return;
@@ -71,16 +76,18 @@ export async function rescheduleAlerts(db: SQLiteDatabase) {
   const settings = await getSettings(db);
   if (!settings.notificationsEnabled) return;
 
-  const groups = groupAlerts(await computeAlerts(db, settings));
-  const lowCount = groups.lowStock.length + groups.outOfStock.length;
-  const expCount = groups.expiring.length + groups.expired.length;
+  const a = await computeAttention(db, settings);
+  const lowCount = a.store.lowStock.length + a.store.outOfStock.length;
+  const expCount = a.store.expiring.length + a.store.expired.length;
+  const parts = [];
+  if (a.expiring.length) parts.push(`${a.expiring.length} ${a.expiring.length === 1 ? 'membresía por vencer' : 'membresías por vencer'}`);
+  if (a.debts.length) parts.push(`${a.debts.length} ${a.debts.length === 1 ? 'cliente con deuda' : 'clientes con deuda'}`);
+  if (lowCount) parts.push(`${lowCount} con poco stock`);
+  if (expCount) parts.push(`${expCount} productos por vencer`);
 
-  if (lowCount + expCount > 0) {
-    const parts = [];
-    if (lowCount) parts.push(`${lowCount} con poco stock`);
-    if (expCount) parts.push(`${expCount} por vencer o vencidos`);
+  if (parts.length > 0) {
     await Notifications.scheduleNotificationAsync({
-      content: { title: 'Resumen de tu almacén', body: `Tienes ${parts.join(' y ')}.`, data: { url: '/store/alerts' } },
+      content: { title: 'Resumen del día', body: `Tienes ${joinParts(parts)}.`, data: { url: '/notifications' } },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DAILY,
         hour: settings.notifyHour,
@@ -90,19 +97,40 @@ export async function rescheduleAlerts(db: SQLiteDatabase) {
     });
   }
 
-  const products = await db.getAllAsync<Product>('SELECT * FROM products WHERE expiry_date IS NOT NULL');
   const now = Date.now();
-  for (const p of products) {
-    const expiry = parseIsoDay(p.expiry_date!);
-    const warnAt = new Date(expiry);
-    warnAt.setDate(warnAt.getDate() - settings.expiryWarningDays);
-    warnAt.setHours(settings.notifyHour, 0, 0, 0);
-    const dueAt = new Date(expiry);
-    dueAt.setHours(settings.notifyHour, 0, 0, 0);
+  const atNotifyHour = (day: string, offsetDays = 0) => {
+    const d = parseIsoDay(day);
+    d.setDate(d.getDate() + offsetDays);
+    d.setHours(settings.notifyHour, 0, 0, 0);
+    return d;
+  };
 
+  const members = await db.getAllAsync<Member & { end_date: string }>(
+    `SELECT m.*, MAX(s.end_date) AS end_date FROM members m JOIN subscriptions s ON s.member_id = m.id
+     WHERE m.status = 'active' GROUP BY m.id HAVING end_date >= ? ORDER BY end_date LIMIT ?`,
+    todayIso(),
+    MAX_MEMBER_REMINDERS,
+  );
+  for (const m of members) {
+    const name = fullName(m);
     const reminders = [
-      { at: warnAt, body: `${p.name} vence en ${settings.expiryWarningDays} días.` },
-      { at: dueAt, body: `${p.name} vence hoy. Revisa tu stock.` },
+      { at: atNotifyHour(m.end_date, -settings.membershipWarningDays), body: `La membresía de ${name} vence en ${settings.membershipWarningDays} días.` },
+      { at: atNotifyHour(m.end_date), body: `La membresía de ${name} vence hoy.` },
+    ];
+    for (const r of reminders) {
+      if (r.at.getTime() <= now) continue;
+      await Notifications.scheduleNotificationAsync({
+        content: { title: 'Membresía por vencer', body: r.body, data: { url: `/member/${m.id}` } },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: r.at, channelId: CHANNEL_ID },
+      });
+    }
+  }
+
+  const products = await db.getAllAsync<Product>('SELECT * FROM products WHERE expiry_date IS NOT NULL');
+  for (const p of products) {
+    const reminders = [
+      { at: atNotifyHour(p.expiry_date!, -settings.expiryWarningDays), body: `${p.name} vence en ${settings.expiryWarningDays} días.` },
+      { at: atNotifyHour(p.expiry_date!), body: `${p.name} vence hoy. Revisa tu stock.` },
     ];
     for (const r of reminders) {
       if (r.at.getTime() <= now) continue;
@@ -112,6 +140,10 @@ export async function rescheduleAlerts(db: SQLiteDatabase) {
       });
     }
   }
+}
+
+function joinParts(parts: string[]) {
+  return parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(', ')} y ${parts.at(-1)}`;
 }
 
 /** Fires right away when a sale or adjustment leaves a product at or below its minimum. */

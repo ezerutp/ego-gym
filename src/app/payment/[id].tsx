@@ -102,7 +102,7 @@ export default function PaymentReceiptScreen() {
       </ScrollView>
 
       <View style={styles.actions}>
-        <Button title="Compartir por WhatsApp" icon="logo-whatsapp" loading={sharing} onPress={share} style={{ backgroundColor: '#25D366', borderColor: '#25D366' }} />
+        <Button title="Compartir por WhatsApp" icon="logo-whatsapp" loading={sharing} onPress={share} style={{ backgroundColor: colors.whatsapp, borderColor: colors.whatsapp }} />
         <Button title="Enviar al admin · Próximamente" icon="paper-plane-outline" variant="secondary" disabled onPress={() => {}} />
       </View>
     </SafeAreaView>

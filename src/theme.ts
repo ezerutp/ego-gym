@@ -17,6 +17,9 @@ const lightColors = {
   dangerSoft: '#FEE4E2',
   info: '#1570EF',
   infoSoft: '#D1E9FF',
+  whatsapp: '#25D366',
+  whatsappDark: '#1DA851',
+  whatsappSoft: '#DCF8E7',
   /** Text and icons placed on top of `primary`; white in both schemes. */
   white: '#FFFFFF',
   overlay: 'rgba(16, 24, 40, 0.55)',
@@ -41,6 +44,9 @@ const darkColors: Colors = {
   dangerSoft: '#3B1513',
   info: '#53B1FD',
   infoSoft: '#102A43',
+  whatsapp: '#25D366',
+  whatsappDark: '#4BE38A',
+  whatsappSoft: '#123524',
   white: '#FFFFFF',
   overlay: 'rgba(0, 0, 0, 0.6)',
 };

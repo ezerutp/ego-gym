@@ -85,14 +85,15 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [x] Ficha con la deuda, la lista de pagos y sus boletas. El admin puede anular un pago.
 - [x] Inicio con los ingresos del día (membresías + tienda) y las deudas
 
-### Fase 5 — Inicio y notificaciones
+### Fase 5 — Inicio y avisos (EGO-07)
 
-- [ ] Inicio: accesos rápidos, números del día (ingresos de membresías y tienda, activos, por vencer, deuda total) y lista "Requiere atención"
-- [ ] Tabla `notifications` (historial en la app) y campana con contador
-- [ ] Reglas: membresías por vencer o vencidas, deudas atrasadas, poco stock, productos por vencer
-- [ ] Unir las alertas de la tienda con las del gimnasio
-- [ ] Resumen diario como notificación local a la hora configurada
-- [ ] Recordatorio por WhatsApp al cliente desde la alerta ("tu membresía vence mañana")
+- [x] Inicio: accesos rápidos, números del día (ingresos de membresías y tienda, activos, por vencer, deuda total) y lista "Requiere atención" con los 5 casos más urgentes
+- [x] Campana con contador y pantalla "Requiere atención" con todo lo pendiente
+- [x] Reglas: membresías por vencer, vencidas (últimos 30 días), deudas, poco stock y productos por vencer
+- [x] Alertas de la tienda y del gimnasio unidas en la misma pantalla
+- [x] Resumen diario como notificación local a la hora configurada (membresías, deudas y almacén), con recordatorios por cada membresía que vence
+- [x] Recordatorio por WhatsApp al cliente desde cada aviso, con el mensaje ya escrito (vencimiento, vencida o deuda), y botón directo para renovar o cobrar
+- [ ] ~~Tabla `notifications` con historial~~: descartado. Los avisos se calculan en el momento, así nunca quedan desactualizados (ver `docs/NOTAS.md`).
 
 ### Fase 6 — Reportes
 
@@ -107,7 +108,7 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [ ] Pantalla Integraciones (solo admin)
 - [ ] Telegram: pegar el token del bot, detectar el `chat_id` con `/start` y enviar una prueba
 - [ ] Envío automático por Telegram de alertas cortas, reportes en PDF y boletas ("Enviar al admin")
-- [ ] WhatsApp: número del admin y plantillas de mensaje editables (recordatorio de pago, vencimiento)
+- [ ] WhatsApp: número del admin y plantillas de mensaje editables (los textos fijos de la fase 5 pasan a ser editables)
 - [ ] Registro de envíos y reintento si no hubo internet
 
 ### Fase 8 — Pulido y entrega

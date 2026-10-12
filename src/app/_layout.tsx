@@ -8,7 +8,7 @@ import { DATABASE_NAME, migrateDb } from '@/db/schema';
 import { getSettings } from '@/db/settings';
 import { LockScreen } from '@/features/auth/components/LockScreen';
 import { session, useSession } from '@/features/auth/lib/session';
-import { onNotificationTap, rescheduleAlerts, setupNotifications } from '@/features/store/lib/notifications';
+import { onNotificationTap, rescheduleAlerts, setupNotifications } from '@/lib/notifications';
 import { useTheme } from '@/theme';
 
 export default function RootLayout() {
@@ -48,6 +48,7 @@ export default function RootLayout() {
             <Stack.Screen name="member/pay" options={{ title: 'Registrar pago' }} />
             <Stack.Screen name="payment/[id]" options={{ title: 'Boleta' }} />
             <Stack.Screen name="charge" options={{ title: 'Cobrar' }} />
+            <Stack.Screen name="notifications" options={{ title: 'Requiere atención' }} />
             <Stack.Screen name="plans/index" options={{ title: 'Planes' }} />
             <Stack.Screen name="plans/[id]" options={{ title: 'Plan' }} />
             <Stack.Screen name="coaches/index" options={{ title: 'Coaches' }} />

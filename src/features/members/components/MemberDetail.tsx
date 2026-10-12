@@ -12,6 +12,7 @@ import { MembershipCard } from '@/features/memberships/components/MembershipCard
 import { formatDateTime, formatDay } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, spacing, useTheme } from '@/theme';
+import { rescheduleAlerts } from '@/lib/notifications';
 
 type Props = { id: number; onDeleted?: () => void; onChanged?: () => void };
 
@@ -54,6 +55,7 @@ function MemberDetailContent({ member, onChanged, onDeleted }: { member: Member;
         style: 'destructive',
         onPress: async () => {
           await deleteMember(db, member.id);
+          rescheduleAlerts(db).catch(() => {});
           onDeleted?.();
         },
       },
