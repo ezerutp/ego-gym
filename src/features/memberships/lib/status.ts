@@ -23,3 +23,11 @@ export function renewalStart(currentEnd: string | null) {
   if (!currentEnd || currentEnd < today) return today;
   return addDays(currentEnd, 1);
 }
+
+export function describeRelativeDay(value: string) {
+  const days = daysUntil(value);
+  if (days === 0) return 'Hoy';
+  if (days === 1) return 'Mañana';
+  if (days === -1) return 'Ayer';
+  return days > 0 ? `En ${days} días` : `Hace ${-days} días`;
+}
