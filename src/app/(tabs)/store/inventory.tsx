@@ -9,6 +9,7 @@ import { Button, EmptyState } from '@/components/ui';
 import { listProducts } from '@/features/store/db/products';
 import { getSettings } from '@/db/settings';
 import { alertsForProduct } from '@/features/store/lib/alerts';
+import { useIsWide } from '@/lib/layout';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
@@ -25,6 +26,7 @@ export default function InventoryScreen() {
   const { colors, font } = useTheme();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterKey>('all');
+  const wide = useIsWide();
   const { data } = useFocusQuery(async (db) => ({ products: await listProducts(db, search), settings: await getSettings(db) }), [search]);
 
   const products = useMemo(() => {
@@ -80,13 +82,18 @@ export default function InventoryScreen() {
       </View>
 
       <FlatList
+        // Changing columns needs a fresh list: FlatList cannot switch numColumns on the fly.
+        key={wide ? 'grid' : 'list'}
         data={products}
         keyExtractor={(p) => String(p.id)}
-        contentContainerStyle={products.length ? styles.list : { flexGrow: 1 }}
-        ItemSeparatorComponent={() => <View style={styles.sep} />}
-        renderItem={({ item }) => (
-          <ProductRow product={item} settings={data!.settings} onPress={() => router.push({ pathname: '/product/[id]', params: { id: item.id } })} />
-        )}
+        numColumns={wide ? 2 : 1}
+        columnWrapperStyle={wide ? styles.gridRow : undefined}
+        contentContainerStyle={!products.length ? { flexGrow: 1 } : wide ? styles.grid : styles.list}
+        ItemSeparatorComponent={wide ? undefined : () => <View style={styles.sep} />}
+        renderItem={({ item }) => {
+          const row = <ProductRow product={item} settings={data!.settings} onPress={() => router.push({ pathname: '/product/[id]', params: { id: item.id } })} />;
+          return wide ? <View style={styles.gridCell}>{row}</View> : row;
+        }}
         ListEmptyComponent={
           data ? (
             data.products.length === 0 && !search ? (
@@ -126,5 +133,8 @@ const useStyles = makeStyles(({ colors, shadow }) =>
     chipText: { fontSize: 13, fontWeight: '700', color: colors.text },
     list: { marginHorizontal: spacing.lg, backgroundColor: colors.surface, borderRadius: radius.lg, overflow: 'hidden', marginBottom: spacing.xl },
     sep: { height: 1, backgroundColor: colors.border, marginLeft: 80 },
+    grid: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl, gap: spacing.md },
+    gridRow: { gap: spacing.md },
+    gridCell: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.lg, overflow: 'hidden' },
   }),
 );
