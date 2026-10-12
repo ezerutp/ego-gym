@@ -6,6 +6,7 @@ import { Alert, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, V
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DateField } from '@/components/DateField';
+import { useCan } from '@/features/auth/lib/session';
 import { PhotoPicker } from '@/components/PhotoPicker';
 import { Button, Card, Field, Pill, ProductThumb, SectionTitle, Stepper } from '@/components/ui';
 import { adjustStock, deleteProduct, getProduct, listMovements, updateProduct } from '@/features/store/db/products';
@@ -23,6 +24,7 @@ export default function ProductDetailScreen() {
   const { colors, font } = useTheme();
   const id = Number(useLocalSearchParams<{ id: string }>().id);
   const db = useSQLiteContext();
+  const canDelete = useCan('delete_records');
   const { data, reload } = useFocusQuery(
     async (db) => {
       const [product, settings, movements] = await Promise.all([getProduct(db, id), getSettings(db), listMovements(db, id)]);
@@ -206,7 +208,7 @@ export default function ProductDetailScreen() {
           ))}
         </Card>
 
-        <Button title="Eliminar producto" icon="trash-outline" variant="danger" onPress={remove} style={{ marginTop: spacing.xl }} />
+        {canDelete && <Button title="Eliminar producto" icon="trash-outline" variant="danger" onPress={remove} style={{ marginTop: spacing.xl }} />}
       </ScrollView>
     </SafeAreaView>
   );
