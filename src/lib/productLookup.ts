@@ -36,7 +36,7 @@ async function lookupIn(source: (typeof PRODUCT_SOURCES)[number], barcode: strin
   const timeout = setTimeout(() => controller.abort(), 8000);
   try {
     const res = await fetch(`https://${source.host}/api/v2/product/${encodeURIComponent(barcode)}.json?fields=${FIELDS}`, {
-      headers: { 'User-Agent': 'BodegaScan/1.0 (Android; contacto@bodegascan.pe)' },
+      headers: { 'User-Agent': 'EgoGym/1.0 (Android)' },
       signal: controller.signal,
     });
     if (!res.ok) return null;

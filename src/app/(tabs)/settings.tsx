@@ -51,7 +51,7 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
 
   const testNotification = async () => {
     if (!notificationsAvailable) return Alert.alert('No disponible en Expo Go', 'Las notificaciones funcionan al instalar el APK de la app.');
-    if (!(await sendTestNotification())) Alert.alert('Permiso requerido', 'Activa las notificaciones de Bodega Scan en los ajustes del teléfono.');
+    if (!(await sendTestNotification())) Alert.alert('Permiso requerido', 'Activa las notificaciones de EGO Gym en los ajustes del teléfono.');
   };
 
   return (
@@ -60,8 +60,8 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={[font.title, { marginBottom: spacing.lg }]}>Ajustes</Text>
 
-          <Section icon="storefront" title="Mi bodega" subtitle="Aparece en la boleta">
-            <Field label="Nombre de la bodega" value={form.storeName} onChangeText={(v) => set('storeName', v)} />
+          <Section icon="storefront" title="Mi gimnasio" subtitle="Aparece en la boleta">
+            <Field label="Nombre del gimnasio" value={form.storeName} onChangeText={(v) => set('storeName', v)} />
             <Field label="Dirección" value={form.storeAddress} onChangeText={(v) => set('storeAddress', v)} placeholder="Av. Los Olivos 123, Lima" />
             <View style={{ flexDirection: 'row', gap: spacing.md }}>
               <View style={{ flex: 1 }}>

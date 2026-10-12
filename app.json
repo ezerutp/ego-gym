@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "Bodega Scan",
-    "slug": "bodega-scan",
+    "name": "EGO Gym",
+    "slug": "ego-gym",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -17,7 +17,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "pe.bodegascan.app",
+      "package": "pe.egogym.app",
       "permissions": [
         "CAMERA",
         "POST_NOTIFICATIONS"
@@ -35,7 +35,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Bodega Scan usa la cámara para escanear códigos de barras.",
+          "cameraPermission": "EGO Gym usa la cámara para escanear códigos de barras.",
           "recordAudioAndroid": false,
           "microphonePermission": false
         }
@@ -43,8 +43,8 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": "Bodega Scan usa la cámara para fotografiar tus productos.",
-          "photosPermission": "Bodega Scan usa tus fotos para la imagen del producto.",
+          "cameraPermission": "EGO Gym usa la cámara para fotografiar tus productos.",
+          "photosPermission": "EGO Gym usa tus fotos para la imagen del producto.",
           "microphonePermission": false
         }
       ],
@@ -66,7 +66,7 @@
         }
       ]
     ],
-    "scheme": "bodegascan",
+    "scheme": "egogym",
     "experiments": {
       "typedRoutes": true
     }

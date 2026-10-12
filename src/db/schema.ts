@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-export const DATABASE_NAME = 'bodega.db';
+export const DATABASE_NAME = 'ego-gym.db';
 
 const DATABASE_VERSION = 1;
 

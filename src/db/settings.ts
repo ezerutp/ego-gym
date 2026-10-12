@@ -17,7 +17,7 @@ export type Settings = {
 };
 
 export const DEFAULT_SETTINGS: Settings = {
-  storeName: 'Mi Bodega',
+  storeName: 'Mi Gimnasio',
   storeAddress: '',
   storeRuc: '',
   storePhone: '',

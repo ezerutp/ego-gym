@@ -40,7 +40,7 @@ export function onNotificationTap(open: (url: string) => void) {
 export async function sendTestNotification() {
   if (!Notifications || !(await setupNotifications())) return false;
   await Notifications.scheduleNotificationAsync({
-    content: { title: 'Bodega Scan', body: 'Así se verán tus alertas de stock y vencimiento.' },
+    content: { title: 'EGO Gym', body: 'Así se verán tus alertas de stock y vencimiento.' },
     trigger: { channelId: CHANNEL_ID },
   });
   return true;
