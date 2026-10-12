@@ -59,11 +59,13 @@ function reportsDir() {
   return dir;
 }
 
-/** Renders the PDF and moves it out of the cache, so it can still be shared days later. */
+/** Writes the PDF from base64: moving the printed cache file fails in Expo Go ("Missing 'READ' permission"). */
 export async function createReportPdf(r: ReportData, fileName: string) {
-  const { uri } = await Print.printToFileAsync({ html: reportHtml(r) });
+  const { base64 } = await Print.printToFileAsync({ html: reportHtml(r), base64: true });
+  if (!base64) throw new Error('expo-print no devolvió el contenido del PDF');
   const dest = new File(reportsDir(), `${fileName}.pdf`);
   if (dest.exists) dest.delete();
-  await new File(uri).move(dest);
+  dest.create();
+  dest.write(base64, { encoding: 'base64' });
   return dest.uri;
 }

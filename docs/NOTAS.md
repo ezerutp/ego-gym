@@ -10,6 +10,7 @@ Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo m�
 - **Fechas en hora local.** `created_at` se guarda en UTC (`datetime('now')`). Los reportes filtran con `date(created_at, 'localtime')` para que una venta de las 22:00 cuente en el día correcto en Perú (UTC−5). Las consultas se probaron con el esquema real.
 - **El reporte guardado y el que se ve.** El historial guarda el texto y el PDF del momento en que se generó. Al abrirlo en la app se recalcula: ventas y cobros del periodo no cambian, pero "por vencer" y "con deuda" muestran la situación actual, y así lo indica la pantalla.
 - **PDF con colores claros siempre**, como las boletas, y guardado en `documents/reports/` para poder compartirlo días después.
+- **No mover el archivo que crea `expo-print`.** En Expo Go, `File.move` sobre ese archivo del caché falló con "Missing 'READ' permission". Se pide el PDF en base64 (`printToFileAsync({ base64: true })`) y se escribe directo en `documents/reports/` con `File.write(..., { encoding: 'base64' })`.
 
 ## 2026-10-12 — Fase 5
 
