@@ -2,10 +2,17 @@
 
 Cambios visibles de la app por etapa. Durante una fase, los cambios se acumulan en "Sin publicar" y pasan a la sección de la fase cuando esta se cierra.
 
-## [Sin publicar]
+## Fase 1 — Usuarios y permisos (2026-10-12)
 
 ### Agregado
 
+- Pantalla de bloqueo: se elige el usuario y se entra con un PIN de 4 dígitos. Tras 5 intentos fallidos hay que esperar 30 segundos.
+- En el primer arranque se crea el usuario administrador.
+- Roles de administrador y recepción. Recepción no puede entrar a Ajustes ni a Usuarios, ni eliminar productos, y las opciones exclusivas del administrador aparecen como "Solo admin".
+- Pantalla Usuarios para crear, editar, desactivar y cambiar el PIN de cada persona.
+- Bloqueo automático tras los minutos sin uso configurados en Ajustes (5 por defecto, 0 para nunca).
+- Botón "Bloquear" en la barra lateral y "Cambiar usuario" en Más.
+- Cada venta registra quién la hizo, y la boleta lo muestra en "Atendió".
 - Plan de implementación del proyecto (`docs/PLAN.md`) y notas de decisiones técnicas (`docs/NOTAS.md`).
 
 ## Fase 0 — Base con la tienda (2026-10-12)
