@@ -165,3 +165,12 @@ export async function notifyLowStock(db: SQLiteDatabase, productIds: number[]) {
     });
   }
 }
+
+/** Fires right away when a scheduled report has been generated. */
+export async function notifyReportReady(db: SQLiteDatabase, title: string, reportId: number) {
+  if (!Notifications || !(await getSettings(db)).notificationsEnabled) return;
+  await Notifications.scheduleNotificationAsync({
+    content: { title: 'Reporte listo', body: `${title} ya está disponible para compartir.`, data: { url: `/reports/${reportId}` } },
+    trigger: { channelId: CHANNEL_ID },
+  });
+}

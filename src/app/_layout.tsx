@@ -2,12 +2,14 @@ import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider } from 'expo-rout
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { AppState, StyleSheet, View } from 'react-native';
 
 import { DATABASE_NAME, migrateDb } from '@/db/schema';
 import { getSettings } from '@/db/settings';
 import { LockScreen } from '@/features/auth/components/LockScreen';
 import { session, useSession } from '@/features/auth/lib/session';
+import { registerReportsTask } from '@/features/reports/lib/background';
+import { runDueReports } from '@/features/reports/lib/runner';
 import { onNotificationTap, rescheduleAlerts, setupNotifications } from '@/lib/notifications';
 import { useTheme } from '@/theme';
 
@@ -24,6 +26,7 @@ export default function RootLayout() {
       <SQLiteProvider databaseName={DATABASE_NAME} onInit={migrateDb}>
         <NotificationBootstrap />
         <AutoLock />
+        <ReportsBootstrap />
         <StatusBar style={dark ? 'light' : 'dark'} />
         {/* Sees every touch without claiming it, to know when the tablet was last used. */}
         <View style={{ flex: 1 }} onStartShouldSetResponderCapture={markActivity}>
@@ -103,6 +106,22 @@ function LockGate() {
 function markActivity() {
   session.touch();
   return false;
+}
+
+/** Scheduled reports also run on every launch and return to the app, as Android may delay the background task. */
+function ReportsBootstrap() {
+  const db = useSQLiteContext();
+
+  useEffect(() => {
+    registerReportsTask();
+    runDueReports(db).catch(() => {});
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') runDueReports(db).catch(() => {});
+    });
+    return () => sub.remove();
+  }, [db]);
+
+  return null;
 }
 
 const AUTO_LOCK_CHECK_MS = 15_000;
