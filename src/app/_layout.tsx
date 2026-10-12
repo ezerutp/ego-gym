@@ -2,12 +2,14 @@ import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider } from 'expo-rout
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { AppState, StyleSheet, View } from 'react-native';
 
 import { DATABASE_NAME, migrateDb } from '@/db/schema';
 import { getSettings } from '@/db/settings';
 import { LockScreen } from '@/features/auth/components/LockScreen';
 import { session, useSession } from '@/features/auth/lib/session';
+import { registerReportsTask } from '@/features/reports/lib/background';
+import { runDueReports } from '@/features/reports/lib/runner';
 import { onNotificationTap, rescheduleAlerts, setupNotifications } from '@/lib/notifications';
 import { useTheme } from '@/theme';
 
@@ -24,6 +26,7 @@ export default function RootLayout() {
       <SQLiteProvider databaseName={DATABASE_NAME} onInit={migrateDb}>
         <NotificationBootstrap />
         <AutoLock />
+        <ReportsBootstrap />
         <StatusBar style={dark ? 'light' : 'dark'} />
         {/* Sees every touch without claiming it, to know when the tablet was last used. */}
         <View style={{ flex: 1 }} onStartShouldSetResponderCapture={markActivity}>
@@ -49,6 +52,9 @@ export default function RootLayout() {
             <Stack.Screen name="payment/[id]" options={{ title: 'Boleta' }} />
             <Stack.Screen name="charge" options={{ title: 'Cobrar' }} />
             <Stack.Screen name="notifications" options={{ title: 'Requiere atención' }} />
+            <Stack.Screen name="reports/index" options={{ title: 'Reportes' }} />
+            <Stack.Screen name="reports/[id]" options={{ title: 'Reporte' }} />
+            <Stack.Screen name="reports/schedule" options={{ title: 'Programar reporte' }} />
             <Stack.Screen name="plans/index" options={{ title: 'Planes' }} />
             <Stack.Screen name="plans/[id]" options={{ title: 'Plan' }} />
             <Stack.Screen name="coaches/index" options={{ title: 'Coaches' }} />
@@ -103,6 +109,22 @@ function LockGate() {
 function markActivity() {
   session.touch();
   return false;
+}
+
+/** Scheduled reports also run on every launch and return to the app, as Android may delay the background task. */
+function ReportsBootstrap() {
+  const db = useSQLiteContext();
+
+  useEffect(() => {
+    registerReportsTask();
+    runDueReports(db).catch(() => {});
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') runDueReports(db).catch(() => {});
+    });
+    return () => sub.remove();
+  }, [db]);
+
+  return null;
 }
 
 const AUTO_LOCK_CHECK_MS = 15_000;

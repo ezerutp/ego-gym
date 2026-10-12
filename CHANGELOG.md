@@ -2,6 +2,16 @@
 
 Cambios visibles de la app por etapa. Durante una fase, los cambios se acumulan en "Sin publicar" y pasan a la sección de la fase cuando esta se cierra.
 
+## Fase 6 — Reportes (2026-10-12)
+
+### Agregado
+
+- Pantalla Reportes (solo administrador) en Más.
+- Cuatro reportes: resumen general, ventas de la tienda, cobros de membresías y clientes, para hoy, ayer, los últimos 7 días, este mes o el mes anterior.
+- Cada reporte muestra sus números principales y tablas (productos más vendidos, cobros por método, clientes nuevos, por vencer y con deuda), y se comparte como PDF o como texto.
+- Reportes programados diarios, semanales o mensuales, a la hora elegida, en PDF o en texto. Se generan solos al abrir la app o en segundo plano, y avisan con una notificación.
+- Historial de reportes generados.
+
 ## Fase 5 — Inicio y avisos (2026-10-12)
 
 ### Agregado
