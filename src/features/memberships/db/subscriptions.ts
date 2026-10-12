@@ -45,6 +45,10 @@ export function listMemberSubscriptions(db: SQLiteDatabase, memberId: number) {
   return db.getAllAsync<Subscription>(`${SELECT} WHERE s.member_id = ? ORDER BY s.end_date DESC, s.id DESC`, memberId);
 }
 
+export function getSubscription(db: SQLiteDatabase, id: number) {
+  return db.getFirstAsync<Subscription>(`${SELECT} WHERE s.id = ?`, id);
+}
+
 /** The period that ends last; it may already be expired. */
 export function getLatestSubscription(db: SQLiteDatabase, memberId: number) {
   return db.getFirstAsync<Subscription>(`${SELECT} WHERE s.member_id = ? ORDER BY s.end_date DESC, s.id DESC LIMIT 1`, memberId);
