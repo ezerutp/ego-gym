@@ -2,7 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 export const DATABASE_NAME = 'ego-gym.db';
 
-const DATABASE_VERSION = 6;
+const DATABASE_VERSION = 7;
 
 export async function migrateDb(db: SQLiteDatabase) {
   await db.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
@@ -225,6 +225,26 @@ export async function migrateDb(db: SQLiteDatabase) {
       CREATE INDEX idx_reports_created ON reports(created_at);
     `);
     version = 6;
+  }
+
+  if (version === 6) {
+    await db.execAsync(`
+      CREATE TABLE deliveries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        channel TEXT NOT NULL DEFAULT 'telegram',
+        kind TEXT NOT NULL CHECK (kind IN ('test', 'report', 'receipt', 'sale', 'summary')),
+        ref_id INTEGER,
+        title TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'failed')),
+        error TEXT,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        sent_at TEXT
+      );
+
+      CREATE INDEX idx_deliveries_status ON deliveries(status);
+    `);
+    version = 7;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
