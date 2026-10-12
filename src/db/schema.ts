@@ -2,7 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 export const DATABASE_NAME = 'ego-gym.db';
 
-const DATABASE_VERSION = 5;
+const DATABASE_VERSION = 6;
 
 export async function migrateDb(db: SQLiteDatabase) {
   await db.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
@@ -193,6 +193,38 @@ export async function migrateDb(db: SQLiteDatabase) {
       CREATE INDEX idx_payments_created ON payments(created_at);
     `);
     version = 5;
+  }
+
+  if (version === 5) {
+    await db.execAsync(`
+      CREATE TABLE report_schedules (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        kind TEXT NOT NULL CHECK (kind IN ('summary', 'sales', 'payments', 'members')),
+        frequency TEXT NOT NULL CHECK (frequency IN ('daily', 'weekly', 'monthly')),
+        weekday INTEGER,
+        month_day INTEGER,
+        hour INTEGER NOT NULL,
+        format TEXT NOT NULL DEFAULT 'pdf' CHECK (format IN ('pdf', 'text')),
+        active INTEGER NOT NULL DEFAULT 1,
+        last_period TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE reports (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        schedule_id INTEGER REFERENCES report_schedules(id) ON DELETE SET NULL,
+        kind TEXT NOT NULL,
+        period_start TEXT NOT NULL,
+        period_end TEXT NOT NULL,
+        title TEXT NOT NULL,
+        text TEXT NOT NULL,
+        pdf_uri TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE INDEX idx_reports_created ON reports(created_at);
+    `);
+    version = 6;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
