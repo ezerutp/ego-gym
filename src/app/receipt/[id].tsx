@@ -92,7 +92,7 @@ export default function ReceiptScreen() {
       </ScrollView>
 
       <View style={styles.actions}>
-        <Button title="Compartir por WhatsApp" icon="logo-whatsapp" loading={sharing} onPress={share} style={{ backgroundColor: '#25D366', borderColor: '#25D366' }} />
+        <Button title="Compartir por WhatsApp" icon="logo-whatsapp" loading={sharing} onPress={share} style={{ backgroundColor: colors.whatsapp, borderColor: colors.whatsapp }} />
         {fresh && (
           <Button
             title="Nueva venta"
