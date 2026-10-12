@@ -7,7 +7,8 @@ App Android (React Native + Expo) para gestionar un gimnasio desde una tablet en
 - **Tienda** (heredada de Bodega Scan): ingreso de productos escaneando el código de barras, búsqueda automática en [Open Food Facts](https://world.openfoodfacts.org), [Open Beauty Facts](https://world.openbeautyfacts.org) y [Open Products Facts](https://world.openproductsfacts.org), almacén con filtros, venta con carrito y boleta para compartir por WhatsApp, alertas de poco stock y vencimiento con notificaciones locales.
 - **Navegación**: en tablet, barra lateral con Inicio, Clientes, Tienda y Más, y el botón **Vender** para escanear; en teléfono, la misma navegación como barra inferior. La Tienda tiene sus propias secciones: Resumen, Almacén, Vender y Alertas.
 - **Ajustes**: datos del gimnasio (salen en la boleta), alertas del almacén, notificaciones y bases públicas de productos. El botón **Sincronizar base de datos** está visible pero deshabilitado ("Próximamente").
-- **Próximamente**: clientes y prospectos, planes y membresías, coaches, cobros con boleta, usuarios con PIN (admin y recepcionista), reportes programados e integraciones (Telegram y WhatsApp).
+- **Usuarios y permisos**: al abrir la app se elige el usuario y se ingresa su PIN de 4 dígitos. El primer arranque crea al administrador. La recepción no accede a Ajustes ni a Usuarios ni puede eliminar registros. La tablet se bloquea sola tras los minutos sin uso configurados, y cada venta guarda quién la hizo.
+- **Próximamente**: clientes y prospectos, planes y membresías, coaches, cobros con boleta, reportes programados e integraciones (Telegram y WhatsApp).
 - **Todo es local**: SQLite en el dispositivo, sin servidor.
 
 ## Estructura
@@ -21,7 +22,10 @@ src/
     product/           Alta, detalle, edición y ajuste de stock
     receipt/[id].tsx   Boleta compartible
     settings.tsx       Ajustes
+    lock.tsx           Bloqueo con PIN y alta del primer administrador
+    users/             Gestión de usuarios (solo admin)
   features/
+    auth/              Usuarios, PIN, sesión y permisos
     store/             Base de datos, lógica y componentes de la tienda
   db/                  Esquema SQLite y ajustes
   lib/                 Formatos, consultas al enfocar y diseño responsive

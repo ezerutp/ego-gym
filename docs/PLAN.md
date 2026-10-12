@@ -39,15 +39,15 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [x] Ajustes en una pantalla aparte, con el botón Sincronizar deshabilitado
 - [x] Skills `ego-dev` y `ego-pr`, plan, notas y changelog (EGO-02)
 
-### Fase 1 — Usuarios y permisos
+### Fase 1 — Usuarios y permisos (EGO-03)
 
-- [ ] Tabla `users` (nombre, rol, PIN con hash, activo) en la migración v2
-- [ ] Primer arranque: crear el usuario admin con su PIN
-- [ ] Pantalla de bloqueo con selección de usuario y teclado de PIN, pensada para tablet
-- [ ] Sesión activa en memoria, botón "Cambiar usuario" y bloqueo automático tras X minutos sin uso
-- [ ] Hook `useCan(permiso)` y protección de pantallas y botones según el rol
-- [ ] Pantalla Usuarios (solo admin): crear, editar, desactivar y cambiar PIN
-- [ ] Registrar quién hizo cada venta o cobro (`user_id` en ventas y pagos)
+- [x] Tabla `users` (nombre, rol, PIN con hash y sal, activo) en la migración v2
+- [x] Primer arranque: crear el usuario admin con su PIN
+- [x] Pantalla de bloqueo con selección de usuario y teclado de PIN, pensada para tablet (espera de 30 s tras 5 intentos fallidos)
+- [x] Sesión activa en memoria, botón "Cambiar usuario" (en Más) o "Bloquear" (en la barra lateral) y bloqueo automático tras X minutos sin uso (configurable en Ajustes)
+- [x] Hook `useCan(permiso)`, bloqueo como capa sobre la app y `AdminOnly` en las pantallas de admin
+- [x] Pantalla Usuarios (solo admin): crear, editar, desactivar y cambiar PIN, siempre con al menos un admin activo
+- [x] Registrar quién hizo cada venta (`user_id` en `sales`, "Atendió" en la boleta). Los pagos lo harán en la fase 4.
 
 ### Fase 2 — Clientes y prospectos
 
@@ -111,6 +111,7 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [ ] Adaptar a tablet las pantallas heredadas de la tienda (almacén y venta en dos columnas)
 - [ ] Respaldo y restauración manual de la base de datos (exportar e importar un archivo)
 - [ ] Perfil `preview` de EAS y APK firmado
+- [ ] Actualizar los paquetes de Expo con versiones de parche pendientes (`npx expo install --check`)
 - [ ] Pruebas completas en la tablet, en horizontal, vertical, tema claro y oscuro
 
 ### Futuro

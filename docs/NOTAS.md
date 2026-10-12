@@ -2,6 +2,19 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-12 — Fase 1
+
+- **PIN con hash.** Se guarda `SHA-256(sal:PIN)` con `expo-crypto` y una sal aleatoria por usuario, nunca el PIN en claro. Con 4 dígitos el hash no impide que alguien con acceso al archivo de la base pruebe las 10 000 combinaciones. Lo que se busca es que el PIN no se pueda leer directamente; la protección real es la espera tras 5 intentos fallidos en la pantalla de bloqueo.
+- **No usar `Stack.Protected` con guardas que cambian al iniciar sesión.** En el teléfono (Expo Go, SDK 57), cuando una guarda de `Stack.Protected` cambiaba al abrir la sesión, React volvía a renderizar el layout raíz (`root render user Ezer`), pero el cambio nunca llegaba a la pantalla: el bloqueo seguía visible y aceptando toques. Pasó tanto con la app entera protegida como solo con las pantallas de admin. La solución es que la lista de pantallas del `Stack` no cambie nunca:
+  - El bloqueo se dibuja como una capa encima del `Stack` cuando no hay sesión (`LockScreen`), bloquea el botón atrás y, al cerrar sesión, cierra las pantallas abiertas con `router.dismissAll()`.
+  - El layout raíz no se suscribe a la sesión. Aun sin `Stack.Protected`, cuando el raíz (que contiene el `Stack`) se volvía a renderizar al iniciar sesión, a veces ese render no llegaba a la pantalla. Ahora `LockGate`, un componente al lado del `Stack`, es el único que escucha la sesión y muestra u oculta el bloqueo.
+  - Ajustes y Usuarios se protegen dentro de la propia pantalla con `AdminOnly`, que muestra "Solo administrador" a quien no es admin.
+- **Diagnosticar con logs en Metro.** Los `console.log` de Expo Go salen en la terminal de `npx expo start`, no en `adb logcat`. En este Xiaomi, `adb` además se desconecta seguido, y MIUI bloquea `input tap` y `pm clear` si no está activada "Depuración USB (ajustes de seguridad)". Para empezar de cero: Ajustes → Aplicaciones → Expo Go → Borrar datos.
+- **Cambio de rol del propio usuario.** Si el admin se quita el rol o se desactiva a sí mismo, primero se sale de la pantalla y después se actualiza la sesión, para que `AdminOnly` no reemplace el formulario mientras `router.back()` está en curso.
+- **Detectar actividad.** `onTouchStartCapture` no existe en los tipos de `View`. Se usa `onStartShouldSetResponderCapture` devolviendo `false`, que registra cada toque sin quitarle el gesto a los hijos. Falta confirmar en la tablet que también cuenta los toques que empiezan un scroll.
+- **La sesión vive en memoria.** Si Android cierra la app, al volver se pide el PIN otra vez. Es intencional para una tablet compartida.
+- **expo-doctor.** Reporta 4 paquetes (`expo`, `expo-router`, `expo-sharing` y `expo-splash-screen`) con versiones de parche más nuevas; ya venían así de Bodega Scan. Se actualizarán en un PR aparte.
+
 ## 2026-10-12 — Fase 0
 
 - **Una sola app en vez de dos.** Se copió el código de Bodega Scan (no el repo ni como submódulo). Así se evita duplicar rutas y dependencias, y los reportes pueden juntar las ventas de la tienda con los cobros de membresías. Desde ahora Bodega Scan y EGO Gym evolucionan por separado.

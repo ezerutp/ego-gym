@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Card, EmptyState, Field, ProductThumb, SectionTitle, Stepper } from '@/components/ui';
 import { listProducts } from '@/features/store/db/products';
 import { createSale } from '@/features/store/db/sales';
+import { session } from '@/features/auth/lib/session';
 import { cart, cartCount, cartTotal, useCart } from '@/features/store/lib/cart';
 import { money, parseMoney } from '@/lib/format';
 import { notifyLowStock, rescheduleAlerts } from '@/features/store/lib/notifications';
@@ -31,7 +32,7 @@ export default function SellScreen() {
     if (missingPrice) return Alert.alert('Faltan precios', 'Hay productos sin precio. Tócalos para ingresar el precio de venta.');
     setSaving(true);
     try {
-      const saleId = await createSale(db, items, customer);
+      const saleId = await createSale(db, items, customer, session.get()?.id ?? null);
       const ids = items.map((l) => l.productId);
       cart.clear();
       setCustomer('');

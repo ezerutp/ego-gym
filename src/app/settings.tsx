@@ -4,6 +4,7 @@ import { Alert, KeyboardAvoidingView, ScrollView, StyleSheet, Switch, Text, View
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Card, Field, IconCircle, Pill, Stepper, type IconName } from '@/components/ui';
+import { AdminOnly } from '@/features/auth/components/AdminOnly';
 import { getSettings, saveSettings, type Settings } from '@/db/settings';
 import { PRODUCT_SOURCES } from '@/features/store/lib/productLookup';
 import { notificationsAvailable, rescheduleAlerts, sendTestNotification, setupNotifications } from '@/features/store/lib/notifications';
@@ -11,6 +12,14 @@ import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, spacing, useTheme } from '@/theme';
 
 export default function SettingsScreen() {
+  return (
+    <AdminOnly>
+      <SettingsScreenContent />
+    </AdminOnly>
+  );
+}
+
+function SettingsScreenContent() {
   const styles = useStyles();
   const { data, reload } = useFocusQuery(async (db) => {
     const [settings, stats] = await Promise.all([
@@ -93,6 +102,12 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
               </Row>
             )}
             <Button title="Probar notificación" icon="notifications-outline" variant="secondary" onPress={testNotification} />
+          </Section>
+
+          <Section icon="lock-closed" title="Seguridad" subtitle="Bloqueo de la tablet">
+            <Row label="Bloquear tras minutos sin uso" hint={form.autoLockMinutes === 0 ? 'Nunca se bloquea sola' : 'Al bloquearse se pide de nuevo el PIN'}>
+              <Stepper value={form.autoLockMinutes} onChange={(v) => set('autoLockMinutes', v)} min={0} max={120} />
+            </Row>
           </Section>
 
           <Section icon="search" title="Fuentes de productos" subtitle="Dónde buscar un código nuevo">

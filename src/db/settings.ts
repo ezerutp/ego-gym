@@ -13,6 +13,8 @@ export type Settings = {
   notifyHour: number;
   receiptFooter: string;
   syncEnabled: boolean;
+  /** Minutes without touches before the tablet locks; 0 never locks. */
+  autoLockMinutes: number;
   productSources: ProductSourceId[];
 };
 
@@ -27,6 +29,7 @@ export const DEFAULT_SETTINGS: Settings = {
   notifyHour: 8,
   receiptFooter: '¡Gracias por su compra!',
   syncEnabled: false,
+  autoLockMinutes: 5,
   productSources: PRODUCT_SOURCES.map((s) => s.id),
 };
 
