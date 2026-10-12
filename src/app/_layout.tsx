@@ -48,6 +48,7 @@ export default function RootLayout() {
             <Stack.Screen name="member/pay" options={{ title: 'Registrar pago' }} />
             <Stack.Screen name="payment/[id]" options={{ title: 'Boleta' }} />
             <Stack.Screen name="charge" options={{ title: 'Cobrar' }} />
+            <Stack.Screen name="notifications" options={{ title: 'Requiere atención' }} />
             <Stack.Screen name="plans/index" options={{ title: 'Planes' }} />
             <Stack.Screen name="plans/[id]" options={{ title: 'Plan' }} />
             <Stack.Screen name="coaches/index" options={{ title: 'Coaches' }} />
