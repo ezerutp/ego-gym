@@ -43,8 +43,8 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": "EGO Gym usa la cámara para fotografiar tus productos.",
-          "photosPermission": "EGO Gym usa tus fotos para la imagen del producto.",
+          "cameraPermission": "EGO Gym usa la cámara para fotografiar a tus clientes y productos.",
+          "photosPermission": "EGO Gym usa tus fotos para la imagen de clientes y productos.",
           "microphonePermission": false
         }
       ],
