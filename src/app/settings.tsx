@@ -55,11 +55,9 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={styles.safe} edges={[]}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Text style={[font.title, { marginBottom: spacing.lg }]}>Ajustes</Text>
-
           <Section icon="storefront" title="Mi gimnasio" subtitle="Aparece en la boleta">
             <Field label="Nombre del gimnasio" value={form.storeName} onChangeText={(v) => set('storeName', v)} />
             <Field label="Dirección" value={form.storeAddress} onChangeText={(v) => set('storeAddress', v)} placeholder="Av. Los Olivos 123, Lima" />
@@ -120,12 +118,12 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
           </Section>
 
           <Section icon="cloud-upload" title="Sincronización" subtitle="Respaldo en la nube">
-            <Row label="Sincronizar base de datos" hint="Respalda tus productos y ventas en la nube y úsalos en varios celulares.">
+            <Row label="Sincronizar base de datos" hint="Respalda tus datos en la nube y úsalos en varios dispositivos.">
               <Switch value={form.syncEnabled} disabled trackColor={{ true: colors.primary, false: colors.border }} />
             </Row>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
               <Pill label="Próximamente" tone="info" icon="time-outline" />
-              <Text style={[font.small, { flex: 1 }]}>Por ahora todo se guarda solo en este celular.</Text>
+              <Text style={[font.small, { flex: 1 }]}>Por ahora todo se guarda solo en este dispositivo.</Text>
             </View>
             <Button title="Sincronizar ahora" icon="sync" variant="secondary" disabled onPress={() => {}} />
           </Section>

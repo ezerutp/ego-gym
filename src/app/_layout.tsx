@@ -35,6 +35,7 @@ export default function RootLayout() {
           <Stack.Screen name="product/new" options={{ title: 'Nuevo producto' }} />
           <Stack.Screen name="product/[id]" options={{ title: 'Producto' }} />
           <Stack.Screen name="receipt/[id]" options={{ title: 'Boleta' }} />
+          <Stack.Screen name="settings" options={{ title: 'Ajustes' }} />
         </Stack>
       </SQLiteProvider>
     </ThemeProvider>
