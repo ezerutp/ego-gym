@@ -2,13 +2,17 @@ import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider } from 'expo-rout
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { View } from 'react-native';
 
 import { DATABASE_NAME, migrateDb } from '@/db/schema';
+import { getSettings } from '@/db/settings';
+import { session, useSession } from '@/features/auth/lib/session';
 import { onNotificationTap, rescheduleAlerts, setupNotifications } from '@/features/store/lib/notifications';
 import { useTheme } from '@/theme';
 
 export default function RootLayout() {
   const { colors, dark } = useTheme();
+  const user = useSession();
   const base = dark ? DarkTheme : DefaultTheme;
   // Navigation containers paint their own background; match it to avoid flashes between screens.
   const navTheme = {
@@ -19,24 +23,37 @@ export default function RootLayout() {
     <ThemeProvider value={navTheme}>
       <SQLiteProvider databaseName={DATABASE_NAME} onInit={migrateDb}>
         <NotificationBootstrap />
+        <AutoLock />
         <StatusBar style={dark ? 'light' : 'dark'} />
-        <Stack
-          screenOptions={{
-            headerShadowVisible: false,
-            headerStyle: { backgroundColor: colors.background },
-            headerTitleStyle: { fontWeight: '700', color: colors.ink },
-            headerTintColor: colors.ink,
-            contentStyle: { backgroundColor: colors.background },
-            headerBackButtonDisplayMode: 'minimal',
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="scan" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
-          <Stack.Screen name="product/new" options={{ title: 'Nuevo producto' }} />
-          <Stack.Screen name="product/[id]" options={{ title: 'Producto' }} />
-          <Stack.Screen name="receipt/[id]" options={{ title: 'Boleta' }} />
-          <Stack.Screen name="settings" options={{ title: 'Ajustes' }} />
-        </Stack>
+        {/* Sees every touch without claiming it, to know when the tablet was last used. */}
+        <View style={{ flex: 1 }} onStartShouldSetResponderCapture={markActivity}>
+          <Stack
+            screenOptions={{
+              headerShadowVisible: false,
+              headerStyle: { backgroundColor: colors.background },
+              headerTitleStyle: { fontWeight: '700', color: colors.ink },
+              headerTintColor: colors.ink,
+              contentStyle: { backgroundColor: colors.background },
+              headerBackButtonDisplayMode: 'minimal',
+            }}
+          >
+            <Stack.Protected guard={!!user}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="scan" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
+              <Stack.Screen name="product/new" options={{ title: 'Nuevo producto' }} />
+              <Stack.Screen name="product/[id]" options={{ title: 'Producto' }} />
+              <Stack.Screen name="receipt/[id]" options={{ title: 'Boleta' }} />
+              <Stack.Protected guard={user?.role === 'admin'}>
+                <Stack.Screen name="settings" options={{ title: 'Ajustes' }} />
+                <Stack.Screen name="users/index" options={{ title: 'Usuarios' }} />
+                <Stack.Screen name="users/[id]" options={{ title: 'Usuario' }} />
+              </Stack.Protected>
+            </Stack.Protected>
+            <Stack.Protected guard={!user}>
+              <Stack.Screen name="lock" options={{ headerShown: false, animation: 'fade' }} />
+            </Stack.Protected>
+          </Stack>
+        </View>
       </SQLiteProvider>
     </ThemeProvider>
   );
@@ -51,6 +68,28 @@ function NotificationBootstrap() {
       .catch(() => {});
 
     return onNotificationTap((url) => router.push(url as never));
+  }, [db]);
+
+  return null;
+}
+
+function markActivity() {
+  session.touch();
+  return false;
+}
+
+const AUTO_LOCK_CHECK_MS = 15_000;
+
+function AutoLock() {
+  const db = useSQLiteContext();
+
+  useEffect(() => {
+    const timer = setInterval(async () => {
+      if (!session.get()) return;
+      const { autoLockMinutes } = await getSettings(db);
+      if (autoLockMinutes > 0 && session.idleMs() > autoLockMinutes * 60_000) session.signOut();
+    }, AUTO_LOCK_CHECK_MS);
+    return () => clearInterval(timer);
   }, [db]);
 
   return null;
