@@ -2,6 +2,22 @@
 
 Cambios visibles de la app por etapa. Durante una fase, los cambios se acumulan en "Sin publicar" y pasan a la sección de la fase cuando esta se cierra.
 
+## Fase 4 — Cobros, deudas y boletas (2026-10-12)
+
+### Agregado
+
+- Al inscribir o renovar se registra el pago en el mismo paso, con método (efectivo, Yape/Plin, tarjeta o transferencia). Si se paga menos del total, lo que falta queda como deuda.
+- Abonos a la deuda desde la ficha del cliente con "Registrar pago".
+- Boleta de membresía para compartir por WhatsApp, con el plan, el personalizado, la vigencia, lo pagado y lo pendiente. El botón "Enviar al admin" ya aparece y se activará con Telegram.
+- La ficha muestra la deuda, el historial con lo que se debe de cada membresía y la lista de pagos con sus boletas. El administrador puede anular un pago.
+- Filtro "Con deuda" en Clientes, y la deuda visible en cada fila.
+- El Inicio muestra los ingresos del día (membresías y tienda) y el total de deudas.
+
+### Cambiado
+
+- El botón central ahora es **Cobrar**: permite elegir entre una venta de la tienda o cobrar la membresía de un cliente. Los clientes con deuda aparecen primero.
+- El acceso rápido "Cobrar membresía" del Inicio ya funciona.
+
 ## Fase 3 — Planes, membresías y coaches (2026-10-12)
 
 ### Agregado
