@@ -7,10 +7,14 @@ import { Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Card, SectionTitle } from '@/components/ui';
+import { getSettings } from '@/db/settings';
 import { AdminOnly } from '@/features/auth/components/AdminOnly';
+import { SendToAdminButton } from '@/features/integrations/components/SendToAdminButton';
+import { sendReport } from '@/features/integrations/lib/deliver';
+import { openWhatsApp } from '@/features/members/lib/contact';
 import { deleteReport, getReport } from '@/features/reports/db/reports';
 import { buildReport, describePeriod } from '@/features/reports/lib/build';
-import { attachPdf } from '@/features/reports/lib/runner';
+import { attachPdf } from '@/features/reports/lib/pdf';
 import { formatDateTime } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
@@ -32,7 +36,9 @@ function ReportScreenContent() {
   const { data, reload } = useFocusQuery(
     async (db) => {
       const report = await getReport(db, Number(id));
-      return report ? { report, view: await buildReport(db, report.kind, report.period_start, report.period_end) } : null;
+      if (!report) return null;
+      const [view, settings] = await Promise.all([buildReport(db, report.kind, report.period_start, report.period_end), getSettings(db)]);
+      return { report, view, adminPhone: settings.adminPhone };
     },
     [id],
   );
@@ -126,7 +132,20 @@ function ReportScreenContent() {
         <Button title="Compartir PDF" icon="document" loading={busy} onPress={sharePdf} />
         <View style={styles.actionRow}>
           <Button title="Compartir texto" icon="chatbubble-ellipses-outline" variant="secondary" onPress={() => Share.share({ message: report.text })} style={{ flex: 1 }} />
-          <Button title="Enviar al admin · Próximamente" icon="paper-plane-outline" variant="secondary" disabled onPress={() => {}} style={{ flex: 1 }} />
+          <SendToAdminButton onSend={() => sendReport(db, report.id, { asPdf: true })} style={{ flex: 1 }} />
+        </View>
+        <View style={styles.actionRow}>
+          <Button
+            title="WhatsApp al admin"
+            icon="logo-whatsapp"
+            variant="secondary"
+            onPress={async () => {
+              if (!(await openWhatsApp(data.adminPhone, report.text))) {
+                Alert.alert('Falta el celular', 'Registra el celular del administrador en Más → Integraciones.');
+              }
+            }}
+            style={{ flex: 1 }}
+          />
         </View>
       </View>
     </SafeAreaView>

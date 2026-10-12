@@ -24,7 +24,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
   {
     title: 'Sistema',
     items: [
-      { icon: 'paper-plane', title: 'Integraciones', subtitle: 'Telegram y WhatsApp', permission: 'manage_integrations' },
+      { icon: 'paper-plane', title: 'Integraciones', subtitle: 'Telegram y WhatsApp', href: '/integrations', permission: 'manage_integrations' },
       { icon: 'people-circle', title: 'Usuarios', subtitle: 'Administrador y recepcionistas con PIN', href: '/users', permission: 'manage_users' },
       { icon: 'settings', title: 'Ajustes', subtitle: 'Datos del gimnasio, alertas, bloqueo y almacén', href: '/settings', permission: 'manage_settings' },
     ],

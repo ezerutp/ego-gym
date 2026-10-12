@@ -1,8 +1,10 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { insertReport, listSchedules, markScheduleRun, setReportPdf } from '@/features/reports/db/reports';
+import { getSettings } from '@/db/settings';
+import { sendReport, telegramReady } from '@/features/integrations/lib/deliver';
+import { insertReport, listSchedules, markScheduleRun } from '@/features/reports/db/reports';
 import { buildReport, reportText, type ReportKind } from '@/features/reports/lib/build';
-import { createReportPdf } from '@/features/reports/lib/pdf';
+import { attachPdf } from '@/features/reports/lib/pdf';
 import { latestRun, periodFor, periodKey } from '@/features/reports/lib/schedule';
 import { notifyReportReady } from '@/lib/notifications';
 
@@ -17,14 +19,6 @@ export async function generateReport(
   const id = await insertReport(db, { schedule_id: scheduleId, kind, period_start: start, period_end: end, title: data.title, text: reportText(data) });
   if (withPdf) await attachPdf(db, id, kind, start, end).catch(() => {});
   return id;
-}
-
-/** Also used when a report saved as text is shared as PDF later. */
-export async function attachPdf(db: SQLiteDatabase, reportId: number, kind: ReportKind, start: string, end: string) {
-  const data = await buildReport(db, kind, start, end);
-  const uri = await createReportPdf(data, `reporte-${reportId}-${kind}-${start}`);
-  await setReportPdf(db, reportId, uri);
-  return uri;
 }
 
 let running = false;
@@ -45,6 +39,8 @@ export async function runDueReports(db: SQLiteDatabase) {
       await markScheduleRun(db, schedule.id, key);
       const report = await db.getFirstAsync<{ title: string }>('SELECT title FROM reports WHERE id = ?', id);
       await notifyReportReady(db, report?.title ?? 'Reporte', id).catch(() => {});
+      const settings = await getSettings(db);
+      if (settings.telegramSendReports && telegramReady(settings)) await sendReport(db, id, { asPdf: schedule.format === 'pdf' });
       generated++;
     }
   } finally {

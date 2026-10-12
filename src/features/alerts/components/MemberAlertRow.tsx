@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import type { Settings } from '@/db/settings';
 import { debtMessage, expiredMessage, expiringMessage } from '@/features/alerts/lib/messages';
 import { MemberAvatar } from '@/features/members/components/MemberBits';
 import { fullName, type MemberListItem } from '@/features/members/db/members';
@@ -14,19 +15,19 @@ import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
 export type MemberAlertKind = 'expiring' | 'expired' | 'debt';
 
-type Props = { member: MemberListItem; kind: MemberAlertKind; gymName: string; warningDays: number };
+type Props = { member: MemberListItem; kind: MemberAlertKind; settings: Settings };
 
-export function MemberAlertRow({ member, kind, gymName, warningDays }: Props) {
+export function MemberAlertRow({ member, kind, settings }: Props) {
   const styles = useStyles();
   const { colors, font } = useTheme();
   const db = useSQLiteContext();
   const end = member.membership_end;
-  const detail = kind === 'debt' ? `Debe ${money(member.debt)}` : membershipState(end, warningDays).detail;
+  const detail = kind === 'debt' ? `Debe ${money(member.debt)}` : membershipState(end, settings.membershipWarningDays).detail;
   const tone = kind === 'expiring' ? colors.warning : colors.danger;
 
   const whatsapp = async () => {
     const text =
-      kind === 'debt' ? debtMessage(member, member.debt, gymName) : kind === 'expired' ? expiredMessage(member, end!, gymName) : expiringMessage(member, end!, gymName);
+      kind === 'debt' ? debtMessage(member, member.debt, settings) : kind === 'expired' ? expiredMessage(member, end!, settings) : expiringMessage(member, end!, settings);
     if (!(await openWhatsApp(member.phone, text))) {
       Alert.alert('Sin número', `${fullName(member)} no tiene un celular registrado.`);
     }

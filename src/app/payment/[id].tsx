@@ -1,12 +1,15 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useLocalSearchParams } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
 import { useRef, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BusinessHeader, Dashed, MetaRow, paper, shareViewAsImage } from '@/components/ReceiptPaper';
+import { BusinessHeader, captureViewToAppFile, Dashed, MetaRow, paper, shareViewAsImage } from '@/components/ReceiptPaper';
 import { Button } from '@/components/ui';
 import { getSettings } from '@/db/settings';
+import { SendToAdminButton } from '@/features/integrations/components/SendToAdminButton';
+import { sendReceiptImage } from '@/features/integrations/lib/deliver';
 import { getPaymentReceipt, PAYMENT_METHODS, paymentReceiptNumber } from '@/features/payments/db/payments';
 import { formatDateTime, formatDay, money } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';
@@ -18,6 +21,7 @@ export default function PaymentReceiptScreen() {
   const params = useLocalSearchParams<{ id: string; fresh?: string }>();
   const id = Number(params.id);
   const fresh = params.fresh === '1';
+  const db = useSQLiteContext();
   const ticketRef = useRef<View>(null);
   const [sharing, setSharing] = useState(false);
   const { data } = useFocusQuery(async (db) => ({ receipt: await getPaymentReceipt(db, id), settings: await getSettings(db) }), [id]);
@@ -103,7 +107,12 @@ export default function PaymentReceiptScreen() {
 
       <View style={styles.actions}>
         <Button title="Compartir por WhatsApp" icon="logo-whatsapp" loading={sharing} onPress={share} style={{ backgroundColor: colors.whatsapp, borderColor: colors.whatsapp }} />
-        <Button title="Enviar al admin · Próximamente" icon="paper-plane-outline" variant="secondary" disabled onPress={() => {}} />
+        <SendToAdminButton
+          onSend={async () => {
+            const caption = `🧾 ${number} · ${r.member_name} · ${money(r.amount)} (${PAYMENT_METHODS[r.method]})${r.due_after > 0 ? ` · Pendiente ${money(r.due_after)}` : ''}`;
+            return sendReceiptImage(db, 'receipt', r.id, number, await captureViewToAppFile(ticketRef, number), caption);
+          }}
+        />
       </View>
     </SafeAreaView>
   );
