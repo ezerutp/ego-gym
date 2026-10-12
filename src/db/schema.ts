@@ -2,7 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 export const DATABASE_NAME = 'ego-gym.db';
 
-const DATABASE_VERSION = 3;
+const DATABASE_VERSION = 4;
 
 export async function migrateDb(db: SQLiteDatabase) {
   await db.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
@@ -110,6 +110,68 @@ export async function migrateDb(db: SQLiteDatabase) {
       CREATE INDEX idx_members_name ON members(first_name, last_name);
     `);
     version = 3;
+  }
+
+  if (version === 3) {
+    await db.execAsync(`
+      CREATE TABLE plans (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        kind TEXT NOT NULL CHECK (kind IN ('monthly', 'alternate', 'daily', 'promo', 'other')),
+        price REAL NOT NULL DEFAULT 0,
+        duration_days INTEGER NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      INSERT INTO plans (name, kind, duration_days) VALUES
+        ('Mensual', 'monthly', 30),
+        ('Interdiario', 'alternate', 30),
+        ('Pase diario', 'daily', 1),
+        ('Promo dúo', 'promo', 30);
+
+      CREATE TABLE coaches (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        phone TEXT,
+        photo_uri TEXT,
+        specialty TEXT,
+        active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE subscriptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        member_id INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+        plan_id INTEGER REFERENCES plans(id) ON DELETE SET NULL,
+        plan_name TEXT NOT NULL,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        price REAL NOT NULL,
+        notes TEXT,
+        created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        synced INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE subscription_addons (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        subscription_id INTEGER NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
+        kind TEXT NOT NULL DEFAULT 'personal',
+        coach_id INTEGER REFERENCES coaches(id) ON DELETE SET NULL,
+        price REAL NOT NULL,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE INDEX idx_subscriptions_member ON subscriptions(member_id, end_date);
+      CREATE INDEX idx_addons_subscription ON subscription_addons(subscription_id);
+      CREATE INDEX idx_addons_coach ON subscription_addons(coach_id);
+    `);
+    version = 4;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);

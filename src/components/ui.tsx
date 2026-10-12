@@ -184,6 +184,16 @@ export function EmptyState({ icon, title, message, children }: { icon: IconName;
   );
 }
 
+export function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  return (
+    <Pressable onPress={onPress} style={[styles.chip, selected && styles.chipSelected]}>
+      <Text style={[styles.chipText, selected && { color: colors.white }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export function IconCircle({ icon, color, bg, size = 40 }: { icon: IconName; color: string; bg: string; size?: number }) {
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
@@ -225,6 +235,17 @@ const useStyles = makeStyles(({ colors, shadow }) =>
     stepperBtn: { width: 40, height: 40, borderRadius: radius.sm, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
     stepperValue: { minWidth: 48, textAlign: 'center', fontSize: 18, fontWeight: '700', color: colors.ink, paddingVertical: 0 },
     sectionTitle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xl, marginBottom: spacing.md },
+    chip: {
+      paddingHorizontal: spacing.lg,
+      minHeight: 40,
+      justifyContent: 'center',
+      borderRadius: radius.pill,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    chipSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
+    chipText: { fontSize: 14, fontWeight: '600', color: colors.text },
     empty: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xxl, paddingHorizontal: spacing.xl },
     emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
   }),

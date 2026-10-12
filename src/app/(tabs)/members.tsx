@@ -7,35 +7,55 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, EmptyState } from '@/components/ui';
 import { MemberDetail } from '@/features/members/components/MemberDetail';
 import { MemberRow } from '@/features/members/components/MemberBits';
-import { countMembersByStatus, listMembers, type MemberStatus } from '@/features/members/db/members';
+import { countMembersByStatus, listMembers, type MemberFilter, type MemberStatus } from '@/features/members/db/members';
+import { getSettings } from '@/db/settings';
+import { countMembershipAlerts } from '@/features/memberships/db/subscriptions';
+import { addDays, todayIso } from '@/lib/format';
 import { useIsWide } from '@/lib/layout';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
-const FILTERS: { key: MemberStatus | 'all'; label: string }[] = [
+type FilterKey = MemberStatus | 'all' | 'expiring' | 'expired';
+
+const FILTERS: { key: FilterKey; label: string }[] = [
   { key: 'all', label: 'Todos' },
   { key: 'active', label: 'Activos' },
+  { key: 'expiring', label: 'Por vencer' },
+  { key: 'expired', label: 'Vencidos' },
   { key: 'prospect', label: 'Prospectos' },
   { key: 'inactive', label: 'Inactivos' },
 ];
+
+function toMemberFilter(key: FilterKey, today: string, warningLimit: string): MemberFilter {
+  if (key === 'all') return {};
+  if (key === 'expiring' || key === 'expired') return { membership: { kind: key, today, warningLimit } };
+  return { status: key };
+}
 
 export default function MembersScreen() {
   const styles = useStyles();
   const { colors, font } = useTheme();
   const wide = useIsWide();
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<MemberStatus | 'all'>('all');
+  const [filter, setFilter] = useState<FilterKey>('all');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const { data, reload } = useFocusQuery(
     async (db) => {
-      const [members, counts] = await Promise.all([listMembers(db, { search, status: filter === 'all' ? undefined : filter }), countMembersByStatus(db)]);
-      return { members, counts };
+      const { membershipWarningDays } = await getSettings(db);
+      const today = todayIso();
+      const warningLimit = addDays(today, membershipWarningDays);
+      const [members, counts, alerts] = await Promise.all([
+        listMembers(db, { search, ...toMemberFilter(filter, today, warningLimit) }),
+        countMembersByStatus(db),
+        countMembershipAlerts(db, today, warningLimit),
+      ]);
+      return { members, counts: { ...counts, ...alerts }, warningDays: membershipWarningDays };
     },
     [search, filter],
   );
 
   const total = data ? data.counts.active + data.counts.prospect + data.counts.inactive : 0;
-  const countFor = (key: MemberStatus | 'all') => (!data ? 0 : key === 'all' ? total : data.counts[key]);
+  const countFor = (key: FilterKey) => (!data ? 0 : key === 'all' ? total : data.counts[key]);
   const openNew = () => router.push('/member/form');
   const open = (id: number) => (wide ? setSelectedId(id) : router.push({ pathname: '/member/[id]', params: { id } }));
 
@@ -89,7 +109,9 @@ export default function MembersScreen() {
         keyExtractor={(m) => String(m.id)}
         contentContainerStyle={styles.listContent}
         keyboardShouldPersistTaps="handled"
-        renderItem={({ item }) => <MemberRow member={item} selected={wide && item.id === selectedId} onPress={() => open(item.id)} />}
+        renderItem={({ item }) => (
+          <MemberRow member={item} warningDays={data!.warningDays} selected={wide && item.id === selectedId} onPress={() => open(item.id)} />
+        )}
         ListEmptyComponent={
           data ? (
             total === 0 ? (

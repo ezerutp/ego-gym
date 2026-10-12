@@ -29,7 +29,13 @@ export function fullName(m: Pick<Member, 'first_name' | 'last_name'>) {
   return `${m.first_name} ${m.last_name}`.trim();
 }
 
-export async function listMembers(db: SQLiteDatabase, { search = '', status }: { search?: string; status?: MemberStatus } = {}) {
+export type MemberListItem = Member & { membership_end: string | null };
+
+export type MemberFilter =
+  | { status?: MemberStatus; membership?: undefined }
+  | { status?: undefined; membership: { kind: 'expiring' | 'expired'; today: string; warningLimit: string } };
+
+export async function listMembers(db: SQLiteDatabase, { search = '', status, membership }: { search?: string } & MemberFilter = {}) {
   const term = `%${search.trim()}%`;
   const params: (string | number)[] = [term, term, term, term];
   let where = `(first_name || ' ' || last_name LIKE ? OR last_name LIKE ? OR IFNULL(dni, '') LIKE ? OR IFNULL(phone, '') LIKE ?)`;
@@ -37,7 +43,20 @@ export async function listMembers(db: SQLiteDatabase, { search = '', status }: {
     where += ' AND status = ?';
     params.push(status);
   }
-  return db.getAllAsync<Member>(`SELECT * FROM members WHERE ${where} ORDER BY first_name COLLATE NOCASE, last_name COLLATE NOCASE`, ...params);
+  if (membership?.kind === 'expiring') {
+    where += " AND status = 'active' AND membership_end BETWEEN ? AND ?";
+    params.push(membership.today, membership.warningLimit);
+  } else if (membership?.kind === 'expired') {
+    where += " AND status = 'active' AND membership_end < ?";
+    params.push(membership.today);
+  }
+  return db.getAllAsync<MemberListItem>(
+    `SELECT * FROM (
+       SELECT m.*, (SELECT MAX(end_date) FROM subscriptions s WHERE s.member_id = m.id) AS membership_end FROM members m
+     ) WHERE ${where}
+     ORDER BY ${membership ? 'membership_end, ' : ''}first_name COLLATE NOCASE, last_name COLLATE NOCASE`,
+    ...params,
+  );
 }
 
 export async function countMembersByStatus(db: SQLiteDatabase) {

@@ -104,6 +104,12 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
             <Button title="Probar notificación" icon="notifications-outline" variant="secondary" onPress={testNotification} />
           </Section>
 
+          <Section icon="card" title="Membresías" subtitle="Cuándo avisar">
+            <Row label="Días de aviso antes de vencer" hint="La membresía pasa a 'Por vencer' estos días antes de su fin">
+              <Stepper value={form.membershipWarningDays} onChange={(v) => set('membershipWarningDays', v)} min={1} max={30} />
+            </Row>
+          </Section>
+
           <Section icon="lock-closed" title="Seguridad" subtitle="Bloqueo de la tablet">
             <Row label="Bloquear tras minutos sin uso" hint={form.autoLockMinutes === 0 ? 'Nunca se bloquea sola' : 'Al bloquearse se pide de nuevo el PIN'}>
               <Stepper value={form.autoLockMinutes} onChange={(v) => set('autoLockMinutes', v)} min={0} max={120} />

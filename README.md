@@ -9,7 +9,8 @@ App Android (React Native + Expo) para gestionar un gimnasio desde una tablet en
 - **Ajustes**: datos del gimnasio (salen en la boleta), alertas del almacén, notificaciones y bases públicas de productos. El botón **Sincronizar base de datos** está visible pero deshabilitado ("Próximamente").
 - **Usuarios y permisos**: al abrir la app se elige el usuario y se ingresa su PIN de 4 dígitos. El primer arranque crea al administrador. La recepción no accede a Ajustes ni a Usuarios ni puede eliminar registros. La tablet se bloquea sola tras los minutos sin uso configurados, y cada venta guarda quién la hizo.
 - **Clientes y prospectos**: registro con foto, DNI, celular, fecha de nacimiento, contacto de emergencia, notas, estado y origen. Lista con búsqueda y filtros por estado, y ficha con botones para WhatsApp y llamar. En tablet, la lista y la ficha se ven lado a lado.
-- **Próximamente**: planes y membresías, coaches, cobros con boleta, reportes programados e integraciones (Telegram y WhatsApp).
+- **Planes, membresías y coaches**: el administrador configura los planes (vienen Mensual, Interdiario, Pase diario y Promo dúo) y los coaches. Desde la ficha se inscribe o renueva al cliente, con personalizado opcional. La membresía se ve como vigente, por vencer o vencida, con filtros en Clientes y un resumen en el Inicio.
+- **Próximamente**: cobros, deudas y boletas de membresía, reportes programados e integraciones (Telegram y WhatsApp).
 - **Todo es local**: SQLite en el dispositivo, sin servidor.
 
 ## Estructura
@@ -24,10 +25,13 @@ src/
     receipt/[id].tsx   Boleta compartible
     settings.tsx       Ajustes
     users/             Gestión de usuarios (solo admin)
-    member/            Ficha y formulario de clientes
+    member/            Ficha, formulario e inscripción de clientes
+    plans/             Planes (solo admin)
+    coaches/           Coaches (solo admin)
   features/
     auth/              Usuarios, PIN, sesión y permisos
     members/           Clientes y prospectos: base de datos, contacto y componentes
+    memberships/       Planes, coaches, membresías y su estado
     store/             Base de datos, lógica y componentes de la tienda
   db/                  Esquema SQLite y ajustes
   lib/                 Formatos, consultas al enfocar y diseño responsive

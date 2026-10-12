@@ -2,6 +2,18 @@
 
 Cambios visibles de la app por etapa. Durante una fase, los cambios se acumulan en "Sin publicar" y pasan a la sección de la fase cuando esta se cierra.
 
+## Fase 3 — Planes, membresías y coaches (2026-10-12)
+
+### Agregado
+
+- Planes configurables por el administrador (nombre, tipo, precio y duración). Vienen precargados Mensual, Interdiario, Pase diario y Promo dúo, listos para ponerles precio.
+- Coaches con foto, celular y especialidad, y la lista de sus clientes con personalizado.
+- Inscripción y renovación desde la ficha del cliente: se elige el plan, las fechas y el precio, y opcionalmente un personalizado con coach. Al inscribirse, un prospecto pasa a cliente activo.
+- La ficha muestra la membresía actual (vigente, por vencer o vencida) y su historial. El administrador puede anular una membresía.
+- Filtros "Por vencer" y "Vencidos" en Clientes, y el estado de la membresía en cada fila.
+- El Inicio muestra cuántas membresías están por vencer y cuántas vencieron.
+- Ajuste de los días de aviso antes del vencimiento (5 por defecto).
+
 ## Fase 2 — Clientes y prospectos (2026-10-12)
 
 ### Agregado

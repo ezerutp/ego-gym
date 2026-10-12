@@ -8,6 +8,7 @@ import { useCan } from '@/features/auth/lib/session';
 import { MemberAvatar, StatusPill } from '@/features/members/components/MemberBits';
 import { deleteMember, fullName, getMember, updateMember, type Member } from '@/features/members/db/members';
 import { callPhone, describeAge, openWhatsApp } from '@/features/members/lib/contact';
+import { MembershipCard } from '@/features/memberships/components/MembershipCard';
 import { formatDateTime, formatDay } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, spacing, useTheme } from '@/theme';
@@ -90,14 +91,11 @@ function MemberDetailContent({ member, onChanged, onDeleted }: { member: Member;
             <Text style={font.h3}>Prospecto</Text>
             <Text style={font.small}>{member.source ? `Llegó por: ${member.source}` : 'Aún no se ha inscrito en un plan.'}</Text>
           </View>
-          <Button title="Marcar como activo" icon="checkmark" onPress={activate} />
+          <Button title="Marcar como activo" icon="checkmark" variant="secondary" onPress={activate} />
         </Card>
       )}
 
-      <SectionTitle title="Membresía" />
-      <Card style={{ gap: spacing.sm }}>
-        <Text style={font.small}>Los planes, cobros y deudas del cliente aparecerán aquí cuando se habilite la inscripción en planes.</Text>
-      </Card>
+      <MembershipCard memberId={member.id} onChanged={onChanged} />
 
       <SectionTitle title="Datos" />
       <Card style={{ padding: 0 }}>

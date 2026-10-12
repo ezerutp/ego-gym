@@ -2,11 +2,12 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Card, IconCircle, Pill, SectionTitle, type IconName } from '@/components/ui';
+import { Card, IconCircle, SectionTitle, type IconName } from '@/components/ui';
 import { getSettings } from '@/db/settings';
 import { countMembersByStatus } from '@/features/members/db/members';
+import { countMembershipAlerts } from '@/features/memberships/db/subscriptions';
 import { getTodaySummary } from '@/features/store/db/sales';
-import { money } from '@/lib/format';
+import { addDays, money, todayIso } from '@/lib/format';
 import { useIsWide } from '@/lib/layout';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
@@ -16,12 +17,18 @@ export default function HomeScreen() {
   const { colors, font } = useTheme();
   const wide = useIsWide();
   const { data } = useFocusQuery(async (db) => {
-    const [settings, today, members] = await Promise.all([getSettings(db), getTodaySummary(db), countMembersByStatus(db)]);
-    return { settings, today, members };
+    const settings = await getSettings(db);
+    const day = todayIso();
+    const [today, members, memberships] = await Promise.all([
+      getTodaySummary(db),
+      countMembersByStatus(db),
+      countMembershipAlerts(db, day, addDays(day, settings.membershipWarningDays)),
+    ]);
+    return { settings, today, members, memberships };
   });
 
   if (!data) return <SafeAreaView style={styles.safe} />;
-  const { settings, today, members } = data;
+  const { settings, today, members, memberships } = data;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -55,10 +62,12 @@ export default function HomeScreen() {
               Clientes activos · {members.prospect} {members.prospect === 1 ? 'prospecto' : 'prospectos'}
             </Text>
           </Card>
-          <Card style={styles.tile}>
-            <IconCircle icon="card" color={colors.warning} bg={colors.warningSoft} />
-            <Pill label="Próximamente" tone="info" icon="time-outline" />
-            <Text style={font.small}>Membresías por vencer, deudas y cobros del día.</Text>
+          <Card style={styles.tile} onPress={() => router.navigate('/members')}>
+            <IconCircle icon="time" color={colors.warning} bg={colors.warningSoft} />
+            <Text style={[font.title, { fontSize: 26 }]}>{memberships.expiring}</Text>
+            <Text style={font.small}>
+              Por vencer en {settings.membershipWarningDays} días · {memberships.expired} {memberships.expired === 1 ? 'vencida' : 'vencidas'}
+            </Text>
           </Card>
         </View>
       </ScrollView>

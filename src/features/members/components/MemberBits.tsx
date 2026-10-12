@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Pill } from '@/components/ui';
 import { initials } from '@/features/auth/components/UserAvatar';
 import { fullName, STATUS_LABELS, type Member, type MemberStatus } from '@/features/members/db/members';
+import { membershipState } from '@/features/memberships/lib/status';
 import { makeStyles, spacing, useTheme } from '@/theme';
 
 const STATUS_TONES = { active: 'success', prospect: 'info', inactive: 'neutral' } as const;
@@ -23,10 +24,21 @@ export function MemberAvatar({ member, size = 48 }: { member: Pick<Member, 'firs
   );
 }
 
-export function MemberRow({ member, selected, onPress }: { member: Member; selected?: boolean; onPress: () => void }) {
+type RowProps = {
+  member: Member & { membership_end?: string | null };
+  /** When given, the row shows the membership state instead of the DNI and phone. */
+  warningDays?: number;
+  selected?: boolean;
+  onPress: () => void;
+};
+
+export function MemberRow({ member, warningDays, selected, onPress }: RowProps) {
   const styles = useStyles();
-  const { font } = useTheme();
-  const detail = [member.dni && `DNI ${member.dni}`, member.phone].filter(Boolean).join(' · ');
+  const { colors, font } = useTheme();
+  const contact = [member.dni && `DNI ${member.dni}`, member.phone].filter(Boolean).join(' · ');
+  const membership = warningDays != null && member.status === 'active' ? membershipState(member.membership_end ?? null, warningDays) : null;
+  const detail = membership ? membership.detail : contact;
+  const detailColor = membership?.kind === 'expired' ? colors.danger : membership?.kind === 'expiring' ? colors.warning : undefined;
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.row, selected && styles.rowSelected, pressed && { opacity: 0.75 }]}>
       <MemberAvatar member={member} />
@@ -35,7 +47,7 @@ export function MemberRow({ member, selected, onPress }: { member: Member; selec
           {fullName(member)}
         </Text>
         {!!detail && (
-          <Text style={font.small} numberOfLines={1}>
+          <Text style={[font.small, detailColor && { color: detailColor, fontWeight: '600' }]} numberOfLines={1}>
             {detail}
           </Text>
         )}
