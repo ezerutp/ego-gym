@@ -2,6 +2,15 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-12 — Fase 6
+
+- **Qué periodo cubre cada programación** (`periodFor` en `schedule.ts`): diaria, ese día; semanal, los 7 días que terminan ese día; mensual, el mes anterior completo. Si se genera antes del mediodía, el diario y el semanal cierran el día anterior, porque a las 8:00 el día recién empieza. Las fechas se probaron con casos de ejemplo (lunes 12/10 14:30, diario 21:00 → 11/10; semanal domingo 21:00 → 05/10 al 11/10; mensual día 1 → setiembre).
+- **Sin reportes duplicados ni atrasados en cadena.** Cada programación guarda la clave del último periodo generado (`last_period`). Al revisar, solo se genera el periodo de la última ejecución que debió ocurrir; si la tablet estuvo apagada una semana, no se generan 7 reportes diarios. Al editar una programación se borra la clave, para que genere de nuevo.
+- **Segundo plano.** La tarea se define a nivel de módulo (`background.ts`, importado desde el layout raíz), abre su propia conexión a SQLite y aplica las migraciones. Android decide cuándo corre (mínimo 15 minutos), así que además se revisa al abrir o volver a la app. No funciona en Expo Go. **Falta confirmar en el APK** que `expo-print` genere el PDF en segundo plano; si falla, el reporte se guarda igual con su texto, y el PDF se crea al tocar "Compartir PDF".
+- **Fechas en hora local.** `created_at` se guarda en UTC (`datetime('now')`). Los reportes filtran con `date(created_at, 'localtime')` para que una venta de las 22:00 cuente en el día correcto en Perú (UTC−5). Las consultas se probaron con el esquema real.
+- **El reporte guardado y el que se ve.** El historial guarda el texto y el PDF del momento en que se generó. Al abrirlo en la app se recalcula: ventas y cobros del periodo no cambian, pero "por vencer" y "con deuda" muestran la situación actual, y así lo indica la pantalla.
+- **PDF con colores claros siempre**, como las boletas, y guardado en `documents/reports/` para poder compartirlo días después.
+
 ## 2026-10-12 — Fase 5
 
 - **Avisos calculados, sin tabla de historial.** El plan contemplaba una tabla `notifications`. Pero si los avisos se guardaran, quedarían desactualizados apenas alguien paga o renueva. `computeAttention` los calcula al abrir la pantalla con las mismas consultas de los filtros de Clientes, y el contador de la campana es la suma.

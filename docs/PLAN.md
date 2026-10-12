@@ -95,19 +95,21 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [x] Recordatorio por WhatsApp al cliente desde cada aviso, con el mensaje ya escrito (vencimiento, vencida o deuda), y botón directo para renovar o cobrar
 - [ ] ~~Tabla `notifications` con historial~~: descartado. Los avisos se calculan en el momento, así nunca quedan desactualizados (ver `docs/NOTAS.md`).
 
-### Fase 6 — Reportes
+### Fase 6 — Reportes (EGO-08)
 
-- [ ] Tipos de reporte: ventas de la tienda, cobros de membresías, clientes (nuevos, por vencer, vencidos, con deuda) y resumen general
-- [ ] Generar el PDF con `expo-print` y compartirlo
-- [ ] Tabla `report_schedules`: tipo, frecuencia (diaria, semanal, mensual), día y hora, formato (texto o PDF) y destino
-- [ ] Ejecutar los reportes pendientes al abrir la app y en segundo plano con `expo-background-task`
-- [ ] Historial de reportes generados
+- [x] Tipos de reporte: resumen general, ventas de la tienda, cobros de membresías y clientes (registrados, por vencer, vencidos y con deuda)
+- [x] Generar a mano con periodos rápidos (hoy, ayer, últimos 7 días, este mes, mes anterior)
+- [x] PDF con `expo-print`, guardado en el almacenamiento de la app y compartible. También se puede compartir el resumen en texto.
+- [x] Tablas `report_schedules` y `reports` en la migración v6: tipo, frecuencia (diaria, semanal, mensual), día, hora, formato (PDF o texto) y activo
+- [x] Ejecutar los reportes pendientes al abrir o volver a la app, y en segundo plano con `expo-background-task` (mínimo cada 15 minutos, cuando Android lo permita)
+- [x] Notificación "Reporte listo" al generarse un reporte programado
+- [x] Historial de reportes generados (solo admin)
 
 ### Fase 7 — Integraciones
 
 - [ ] Pantalla Integraciones (solo admin)
 - [ ] Telegram: pegar el token del bot, detectar el `chat_id` con `/start` y enviar una prueba
-- [ ] Envío automático por Telegram de alertas cortas, reportes en PDF y boletas ("Enviar al admin")
+- [ ] Envío automático por Telegram de alertas cortas, reportes programados (PDF o texto) y boletas ("Enviar al admin" en boletas y reportes)
 - [ ] WhatsApp: número del admin y plantillas de mensaje editables (los textos fijos de la fase 5 pasan a ser editables)
 - [ ] Registro de envíos y reintento si no hubo internet
 
