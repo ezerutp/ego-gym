@@ -8,6 +8,11 @@ export function parseDbDate(value: string) {
   return new Date(value.replace(' ', 'T') + 'Z');
 }
 
+/** Converts a JS ISO timestamp to the `YYYY-MM-DD HH:MM:SS` UTC format SQLite uses. */
+export function isoToDb(iso: string) {
+  return iso.slice(0, 19).replace('T', ' ');
+}
+
 export function formatDateTime(value: string) {
   const d = parseDbDate(value);
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;

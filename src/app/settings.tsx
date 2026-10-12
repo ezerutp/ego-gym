@@ -5,9 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Card, Field, IconCircle, Pill, Stepper, type IconName } from '@/components/ui';
 import { AdminOnly } from '@/features/auth/components/AdminOnly';
+import { session } from '@/features/auth/lib/session';
+import { BackupError, exportBackup, restoreBackup } from '@/features/backup/backup';
 import { getSettings, saveSettings, type Settings } from '@/db/settings';
 import { PRODUCT_SOURCES } from '@/features/store/lib/productLookup';
 import { notificationsAvailable, rescheduleAlerts, sendTestNotification, setupNotifications } from '@/lib/notifications';
+import { formatDateTime, isoToDb } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, spacing, useTheme } from '@/theme';
 
@@ -42,6 +45,7 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
   const db = useSQLiteContext();
   const [form, setForm] = useState(initial);
   const [saving, setSaving] = useState(false);
+  const [backingUp, setBackingUp] = useState(false);
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) => setForm((f) => ({ ...f, [key]: value }));
   const dirty = JSON.stringify(form) !== JSON.stringify(initial);
 
@@ -61,6 +65,41 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
       setSaving(false);
     }
   };
+
+  const backup = async () => {
+    setBackingUp(true);
+    try {
+      await exportBackup(db);
+      onSaved();
+    } catch (e) {
+      Alert.alert('No se pudo exportar', String(e));
+    } finally {
+      setBackingUp(false);
+    }
+  };
+
+  const restore = () =>
+    Alert.alert(
+      'Restaurar respaldo',
+      'Se reemplazarán TODOS los datos actuales de la tablet por los del respaldo. Esta acción no se puede deshacer. ¿Continuar?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Elegir archivo',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (!(await restoreBackup(db))) return;
+              await rescheduleAlerts(db).catch(() => {});
+              Alert.alert('Respaldo restaurado', 'Los datos se reemplazaron. Ingresa de nuevo con tu PIN.');
+              session.signOut();
+            } catch (e) {
+              Alert.alert('No se pudo restaurar', e instanceof BackupError ? e.message : String(e));
+            }
+          },
+        },
+      ],
+    );
 
   const testNotification = async () => {
     if (!notificationsAvailable) return Alert.alert('No disponible en Expo Go', 'Las notificaciones funcionan al instalar el APK de la app.');
@@ -151,6 +190,18 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
               <Text style={[font.small, { flex: 1 }]}>Por ahora todo se guarda solo en este dispositivo.</Text>
             </View>
             <Button title="Sincronizar ahora" icon="sync" variant="secondary" disabled onPress={() => {}} />
+          </Section>
+
+          <Section icon="shield-checkmark" title="Respaldo" subtitle="Copia de seguridad de la base de datos">
+            <Text style={font.small}>
+              Todo se guarda solo en esta tablet. Exporta un respaldo con frecuencia y guárdalo en Drive, en tu correo o envíalo por WhatsApp. Incluye clientes,
+              membresías, pagos, tienda, reportes y ajustes; las fotos no se incluyen.
+            </Text>
+            <Text style={font.h3}>{form.lastBackupAt ? `Último respaldo: ${formatDateTime(isoToDb(form.lastBackupAt))}` : 'Aún no hay respaldos'}</Text>
+            <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' }}>
+              <Button title="Exportar respaldo" icon="download-outline" loading={backingUp} onPress={backup} style={{ flexGrow: 1 }} />
+              <Button title="Restaurar respaldo" icon="refresh-circle-outline" variant="secondary" onPress={restore} style={{ flexGrow: 1 }} />
+            </View>
           </Section>
 
           <Section icon="server" title="Datos locales" subtitle="Guardados en este dispositivo">
