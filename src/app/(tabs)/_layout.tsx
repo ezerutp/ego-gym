@@ -6,6 +6,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { IconName } from '@/components/ui';
+import { UserAvatar } from '@/features/auth/components/UserAvatar';
+import { session, useSession } from '@/features/auth/lib/session';
 import { cartCount, useCart } from '@/features/store/lib/cart';
 import { useIsWide } from '@/lib/layout';
 import { makeStyles, radius, useTheme } from '@/theme';
@@ -116,7 +118,24 @@ function SideRail(props: TabBarProps) {
         <TabItem {...props} name="store" />
       </View>
       <TabItem {...props} name="more" />
+      <LockButton />
     </View>
+  );
+}
+
+function LockButton() {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const user = useSession();
+  if (!user) return null;
+  return (
+    <Pressable onPress={session.signOut} style={({ pressed }) => [styles.lock, pressed && { opacity: 0.7 }]}>
+      <UserAvatar name={user.name} role={user.role} size={40} />
+      <View style={styles.lockRow}>
+        <Ionicons name="lock-closed" size={12} color={colors.muted} />
+        <Text style={[styles.label, { color: colors.muted }]}>Bloquear</Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -169,5 +188,7 @@ const useStyles = makeStyles(({ colors, shadow }) =>
     railTabs: { flex: 1, gap: 6 },
     railTab: { alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 12, borderRadius: radius.md },
     railTabActive: { backgroundColor: colors.primarySoft },
+    lock: { alignItems: 'center', gap: 4, marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: colors.border },
+    lockRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   }),
 );
