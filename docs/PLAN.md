@@ -53,7 +53,7 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 
 - [x] Tabla `members` en la migración v3: nombres, apellidos, DNI (único), celular, foto, fecha de nacimiento, contacto de emergencia, notas, estado (`prospect`, `active`, `inactive`), origen y quién lo registró
 - [x] Lista con búsqueda (nombre, DNI, celular) y filtros por estado con contadores: Todos, Activos, Prospectos, Inactivos
-- [x] Filtros por vencimiento (por vencer, vencidos), hechos en la fase 3. El filtro "con deuda" llega en la fase 4.
+- [x] Filtros por vencimiento (por vencer, vencidos) y "con deuda", hechos en las fases 3 y 4
 - [x] Alta y edición con foto de la cámara o la galería, copiada al almacenamiento de la app
 - [x] Ficha del cliente con sus datos, edad y un espacio para la membresía (se completa en las fases 3 y 4)
 - [x] Prospectos: origen ("¿Cómo nos conoció?") y botón "Marcar como activo". En la fase 3 pasan a activos al inscribirlos en un plan.
@@ -73,15 +73,17 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [x] Estados calculados: vigente, por vencer (N días configurables en Ajustes) y vencida, visibles en la ficha, la lista, los filtros y el Inicio
 - [x] Historial de membresías en la ficha. El admin puede anular una membresía.
 
-### Fase 4 — Cobros, deudas y boletas
+### Fase 4 — Cobros, deudas y boletas (EGO-06)
 
-- [ ] Tabla `payments`: membresía, monto, método (efectivo, Yape/Plin, tarjeta, transferencia), usuario y fecha
-- [ ] Deuda calculada: precio acordado más adicionales, menos lo pagado
-- [ ] Botón central **Cobrar**: elegir entre membresía y venta de tienda
-- [ ] Pagos parciales y abonos a una deuda
-- [ ] Boleta de membresía (cliente, plan, personalizado y coach, vigencia, pagado y pendiente) como imagen, reutilizando la boleta de la tienda
-- [ ] Botones de la boleta: "Compartir por WhatsApp" (ahora) y "Enviar al admin" (se activa en la fase 7)
-- [ ] Numeración de boletas propia para membresías
+- [x] Tabla `payments` en la migración v5: membresía, cliente, monto, método (efectivo, Yape/Plin, tarjeta, transferencia), notas, usuario y fecha
+- [x] Deuda calculada: precio acordado más el personalizado, menos lo pagado, por membresía y por cliente
+- [x] Pago en el mismo paso al inscribir o renovar ("Monto pagado", lleno con el total y editable para pagos parciales)
+- [x] Abonos a una deuda desde la ficha ("Registrar pago") y desde Cobrar
+- [x] Botón central **Cobrar**: venta de la tienda o membresía. Al elegir un cliente con deuda se registra un abono; si no tiene deuda, se renueva o inscribe.
+- [x] Boleta de membresía (`M001-…`) como imagen: cliente, plan, personalizado y coach, vigencia, este pago, lo pagado a la fecha y lo pendiente
+- [x] Botones de la boleta: "Compartir por WhatsApp" y "Enviar al admin" (visible, se activa en la fase 7)
+- [x] Ficha con la deuda, la lista de pagos y sus boletas. El admin puede anular un pago.
+- [x] Inicio con los ingresos del día (membresías + tienda) y las deudas
 
 ### Fase 5 — Inicio y notificaciones
 

@@ -2,6 +2,14 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-12 — Fase 4
+
+- **La deuda se calcula, no se guarda.** Es el precio del plan más los adicionales, menos la suma de los pagos (`SUBSCRIPTION_TOTAL_SQL` y `SUBSCRIPTION_PAID_SQL` en `payments.ts`). Si se anula un pago o una membresía, la deuda se actualiza sola. Las consultas se probaron con el esquema real en SQLite (cliente con plan de 80 + personalizado de 100 y pagos de 100 + 30: deuda de 50).
+- **Pago dentro de la inscripción.** `insertPayment` no abre su propia transacción, para poder ir dentro de la transacción de `createSubscription`: la membresía y su primer pago se guardan juntos o no se guarda ninguno. `expo-sqlite` no permite anidar `withTransactionAsync`.
+- **Una boleta por pago.** Cada pago genera su boleta (`M001-` + id del pago), separada de las ventas de la tienda (`B001-`). La boleta muestra lo pagado hasta ese pago (no lo pagado después), para que una boleta vieja no cambie si luego hay más abonos.
+- **Abonos a la deuda más antigua.** Desde Cobrar y desde "Registrar pago" se abona primero a la membresía más antigua con saldo pendiente.
+- **Compartir la boleta.** Se captura la vista como PNG (`react-native-view-shot`) y se abre el menú de compartir del sistema, donde WhatsApp aparece como opción. Una app no puede enviar una imagen directo a un chat de WhatsApp sin que el usuario lo elija. El papel de la boleta y la función de compartir están en `src/components/ReceiptPaper.tsx` y los usan las dos boletas.
+
 ## 2026-10-12 — Fase 3
 
 - **Días inclusivos.** Un plan de 30 días que empieza el 1 termina el 30 (`endDateFor` = inicio + duración - 1). Un pase diario empieza y termina el mismo día.
