@@ -2,6 +2,16 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-12 — Fase 5
+
+- **Avisos calculados, sin tabla de historial.** El plan contemplaba una tabla `notifications`. Pero si los avisos se guardaran, quedarían desactualizados apenas alguien paga o renueva. `computeAttention` los calcula al abrir la pantalla con las mismas consultas de los filtros de Clientes, y el contador de la campana es la suma.
+- **Vencidas de los últimos 30 días.** Las membresías vencidas hace más de 30 días (`EXPIRED_LOOKBACK_DAYS`) ya no salen como pendientes, para que la lista no se llene de exclientes. Se pueden seguir viendo con el filtro "Vencidos" de Clientes.
+- **Notificaciones con contenido fijo.** Una notificación local no puede consultar la base de datos al dispararse. Por eso `rescheduleAlerts` borra y vuelve a programar todo cada vez que cambia algo: al abrir la app, al inscribir, cobrar, anular, editar clientes, vender o ajustar stock. El resumen diario muestra lo que había en la última reprogramación.
+- **Límite de alarmas.** Android permite unas 500 alarmas por app. Los recordatorios de membresía se limitan a las 60 que vencen primero (dos avisos cada una: N días antes y el mismo día).
+- **Notificaciones solo en el APK.** En Expo Go no funcionan desde SDK 53 (ya pasaba en Bodega Scan). Los avisos dentro de la app sí funcionan en Expo Go.
+- **Mensajes de WhatsApp fijos.** Están en `src/features/alerts/lib/messages.ts`. En la fase 7 pasan a ser plantillas editables desde Integraciones.
+- **El módulo de notificaciones pasó a `src/lib/notifications.ts`**, porque ya no es solo de la tienda.
+
 ## 2026-10-12 — Fase 4
 
 - **La deuda se calcula, no se guarda.** Es el precio del plan más los adicionales, menos la suma de los pagos (`SUBSCRIPTION_TOTAL_SQL` y `SUBSCRIPTION_PAID_SQL` en `payments.ts`). Si se anula un pago o una membresía, la deuda se actualiza sola. Las consultas se probaron con el esquema real en SQLite (cliente con plan de 80 + personalizado de 100 y pagos de 100 + 30: deuda de 50).
