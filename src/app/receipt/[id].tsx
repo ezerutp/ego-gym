@@ -76,6 +76,12 @@ export default function ReceiptScreen() {
                 <Text style={paper.metaValue}>{sale.customer_name}</Text>
               </View>
             )}
+            {sale.user_name && (
+              <View style={paper.metaRow}>
+                <Text style={paper.metaLabel}>Atendió</Text>
+                <Text style={paper.metaValue}>{sale.user_name}</Text>
+              </View>
+            )}
             <Dashed />
 
             <View style={paper.itemsHeader}>

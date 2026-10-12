@@ -9,17 +9,18 @@ export type CartLine = {
   maxStock: number;
 };
 
-export type Sale = { id: number; total: number; customer_name: string | null; created_at: string };
+export type Sale = { id: number; total: number; customer_name: string | null; user_id: number | null; created_at: string };
 export type SaleItem = { id: number; product_id: number | null; name: string; quantity: number; unit_price: number };
 
-export async function createSale(db: SQLiteDatabase, lines: CartLine[], customerName: string | null) {
+export async function createSale(db: SQLiteDatabase, lines: CartLine[], customerName: string | null, userId: number | null) {
   const total = lines.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0);
   let saleId = 0;
   await db.withTransactionAsync(async () => {
     const result = await db.runAsync(
-      'INSERT INTO sales (total, customer_name) VALUES (?, ?)',
+      'INSERT INTO sales (total, customer_name, user_id) VALUES (?, ?, ?)',
       round2(total),
       customerName?.trim() || null,
+      userId,
     );
     saleId = result.lastInsertRowId;
     for (const line of lines) {
@@ -48,7 +49,10 @@ export async function createSale(db: SQLiteDatabase, lines: CartLine[], customer
 }
 
 export async function getSale(db: SQLiteDatabase, id: number) {
-  const sale = await db.getFirstAsync<Sale>('SELECT * FROM sales WHERE id = ?', id);
+  const sale = await db.getFirstAsync<Sale & { user_name: string | null }>(
+    'SELECT s.*, u.name AS user_name FROM sales s LEFT JOIN users u ON u.id = s.user_id WHERE s.id = ?',
+    id,
+  );
   if (!sale) return null;
   const items = await db.getAllAsync<SaleItem>('SELECT * FROM sale_items WHERE sale_id = ? ORDER BY id', id);
   return { sale, items };
