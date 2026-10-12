@@ -1,17 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import * as Sharing from 'expo-sharing';
 import { useRef, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { captureRef } from 'react-native-view-shot';
 
+import { BusinessHeader, Dashed, MetaRow, paper, shareViewAsImage } from '@/components/ReceiptPaper';
 import { Button } from '@/components/ui';
 import { getSale } from '@/features/store/db/sales';
 import { getSettings } from '@/db/settings';
 import { formatDateTime, money, receiptNumber } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';
-import { lightTheme, makeStyles, radius, spacing, useTheme, type Theme } from '@/theme';
+import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
 export default function ReceiptScreen() {
   const styles = useStyles();
@@ -30,10 +29,9 @@ export default function ReceiptScreen() {
   const share = async () => {
     setSharing(true);
     try {
-      const path = await captureRef(ticketRef, { format: 'png', quality: 1, result: 'tmpfile' });
-      const uri = path.startsWith('file://') ? path : `file://${path}`;
-      if (!(await Sharing.isAvailableAsync())) return Alert.alert('No disponible', 'Este dispositivo no permite compartir archivos.');
-      await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Enviar boleta por WhatsApp' });
+      if (!(await shareViewAsImage(ticketRef, 'Enviar boleta por WhatsApp'))) {
+        Alert.alert('No disponible', 'Este dispositivo no permite compartir archivos.');
+      }
     } catch (e) {
       Alert.alert('No se pudo generar la imagen', String(e));
     } finally {
@@ -55,33 +53,14 @@ export default function ReceiptScreen() {
         {/* Everything inside this view becomes the shared image */}
         <View ref={ticketRef} collapsable={false} style={paper.ticketWrap}>
           <View style={paper.ticket}>
-            <View style={paper.logo}>
-              <Ionicons name="storefront" size={26} color={lightTheme.colors.white} />
-            </View>
-            <Text style={paper.store}>{settings.storeName}</Text>
-            {!!settings.storeAddress && <Text style={paper.storeMeta}>{settings.storeAddress}</Text>}
-            {!!settings.storeRuc && <Text style={paper.storeMeta}>RUC {settings.storeRuc}</Text>}
-            {!!settings.storePhone && <Text style={paper.storeMeta}>Tel. {settings.storePhone}</Text>}
+            <BusinessHeader settings={settings} icon="storefront" />
 
             <Dashed />
             <Text style={paper.docTitle}>BOLETA DE VENTA</Text>
             <Text style={paper.docNumber}>{receiptNumber(sale.id)}</Text>
-            <View style={paper.metaRow}>
-              <Text style={paper.metaLabel}>Fecha</Text>
-              <Text style={paper.metaValue}>{formatDateTime(sale.created_at)}</Text>
-            </View>
-            {sale.customer_name && (
-              <View style={paper.metaRow}>
-                <Text style={paper.metaLabel}>Cliente</Text>
-                <Text style={paper.metaValue}>{sale.customer_name}</Text>
-              </View>
-            )}
-            {sale.user_name && (
-              <View style={paper.metaRow}>
-                <Text style={paper.metaLabel}>Atendió</Text>
-                <Text style={paper.metaValue}>{sale.user_name}</Text>
-              </View>
-            )}
+            <MetaRow label="Fecha" value={formatDateTime(sale.created_at)} />
+            {sale.customer_name && <MetaRow label="Cliente" value={sale.customer_name} />}
+            {sale.user_name && <MetaRow label="Atendió" value={sale.user_name} />}
             <Dashed />
 
             <View style={paper.itemsHeader}>
@@ -130,12 +109,6 @@ export default function ReceiptScreen() {
   );
 }
 
-function Dashed() {
-  return <View style={paper.dashed} />;
-}
-
-const MONO = { fontVariant: ['tabular-nums' as const] };
-
 const useStyles = makeStyles(({ colors }) =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
@@ -145,33 +118,3 @@ const useStyles = makeStyles(({ colors }) =>
   }),
 );
 
-/** The receipt is shared as an image, so it always looks like white paper, even in dark mode. */
-const paper = paperStyles(lightTheme);
-
-function paperStyles({ colors, font }: Theme) {
-  return StyleSheet.create({
-    ticketWrap: { backgroundColor: colors.background, padding: spacing.sm, borderRadius: radius.lg + spacing.sm },
-    ticket: { backgroundColor: colors.white, borderRadius: radius.lg, padding: spacing.xl, alignItems: 'stretch' },
-    logo: { alignSelf: 'center', width: 52, height: 52, borderRadius: 16, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
-    store: { ...font.h2, textAlign: 'center' },
-    storeMeta: { ...font.small, textAlign: 'center' },
-    dashed: { borderBottomWidth: 1.5, borderStyle: 'dashed', borderColor: colors.border, marginVertical: spacing.lg },
-    docTitle: { textAlign: 'center', fontWeight: '800', letterSpacing: 2, color: colors.ink, fontSize: 13 },
-    docNumber: { textAlign: 'center', fontWeight: '700', color: colors.primary, fontSize: 16, marginBottom: spacing.md, ...MONO },
-    metaRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
-    metaLabel: font.small,
-    metaValue: { fontSize: 13, color: colors.ink, fontWeight: '600', ...MONO },
-    itemsHeader: { flexDirection: 'row', marginBottom: spacing.sm },
-    th: { ...font.tiny, textTransform: 'uppercase' },
-    itemRow: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 6 },
-    itemName: { fontSize: 14, color: colors.ink, fontWeight: '600' },
-    itemUnit: { fontSize: 12, color: colors.muted, ...MONO },
-    itemQty: { fontSize: 14, color: colors.ink, textAlign: 'center', ...MONO },
-    itemTotal: { fontSize: 14, color: colors.ink, textAlign: 'right', fontWeight: '600', ...MONO },
-    totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-    totalLabel: { fontSize: 16, fontWeight: '800', color: colors.ink, letterSpacing: 1 },
-    totalValue: { fontSize: 26, fontWeight: '800', color: colors.ink, ...MONO },
-    footer: { textAlign: 'center', fontSize: 15, fontWeight: '700', color: colors.ink },
-    disclaimer: { textAlign: 'center', fontSize: 10, color: colors.faint, marginTop: spacing.sm },
-  });
-}
