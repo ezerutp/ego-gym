@@ -23,6 +23,7 @@ import { describeAge, persistMemberPhoto } from '@/features/members/lib/contact'
 import { useIsWide } from '@/lib/layout';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, spacing, useTheme } from '@/theme';
+import { rescheduleAlerts } from '@/lib/notifications';
 
 const STATUSES: MemberStatus[] = ['prospect', 'active', 'inactive'];
 
@@ -71,6 +72,7 @@ function MemberForm({ member }: { member: Member | null }) {
       const input = { ...form, photo_uri: photo };
       if (member) await updateMember(db, member.id, input);
       else await createMember(db, input, session.get()?.id ?? null);
+      rescheduleAlerts(db).catch(() => {});
       router.back();
     } catch (e) {
       Alert.alert('No se pudo guardar', String(e));

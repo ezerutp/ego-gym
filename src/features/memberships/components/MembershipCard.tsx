@@ -12,6 +12,7 @@ import { membershipState, type MembershipKind } from '@/features/memberships/lib
 import { formatDateTime, formatDay, money } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, spacing, useTheme } from '@/theme';
+import { rescheduleAlerts } from '@/lib/notifications';
 
 export const MEMBERSHIP_TONES: Record<MembershipKind, 'success' | 'warning' | 'danger' | 'neutral'> = {
   current: 'success',
@@ -52,6 +53,7 @@ export function MembershipCard({ memberId, onChanged }: { memberId: number; onCh
         style: 'destructive',
         onPress: async () => {
           await deletePayment(db, payment.id);
+          rescheduleAlerts(db).catch(() => {});
           reload();
           onChanged?.();
         },
@@ -66,6 +68,7 @@ export function MembershipCard({ memberId, onChanged }: { memberId: number; onCh
         style: 'destructive',
         onPress: async () => {
           await deleteSubscription(db, sub.id);
+          rescheduleAlerts(db).catch(() => {});
           reload();
           onChanged?.();
         },

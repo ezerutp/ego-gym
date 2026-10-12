@@ -81,14 +81,14 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
             <Field label="Mensaje al pie de la boleta" value={form.receiptFooter} onChangeText={(v) => set('receiptFooter', v)} />
           </Section>
 
-          <Section icon="notifications" title="Alertas del almacén" subtitle="Cuándo avisarte">
+          <Section icon="notifications" title="Alertas y notificaciones" subtitle="Almacén y resumen diario">
             <Row label="Stock mínimo por defecto" hint="Avisar cuando queden estas unidades o menos">
               <Stepper value={form.lowStockThreshold} onChange={(v) => set('lowStockThreshold', v)} min={0} max={999} />
             </Row>
             <Row label="Aviso de vencimiento" hint={`Avisar ${form.expiryWarningDays} días antes de que venza`}>
               <Stepper value={form.expiryWarningDays} onChange={(v) => set('expiryWarningDays', v)} min={1} max={180} />
             </Row>
-            <Row label="Notificaciones" hint="Resumen diario y avisos al instante">
+            <Row label="Notificaciones" hint="Resumen diario de membresías, deudas y almacén, y avisos al instante">
               <Switch
                 value={form.notificationsEnabled}
                 onValueChange={(v) => set('notificationsEnabled', v)}

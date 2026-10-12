@@ -13,6 +13,7 @@ import { insertPayment, type PaymentMethod } from '@/features/payments/db/paymen
 import { formatDay, money, parseMoney } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, spacing, useTheme } from '@/theme';
+import { rescheduleAlerts } from '@/lib/notifications';
 
 async function loadPayData(db: SQLiteDatabase, subscriptionId: number) {
   const subscription = await getSubscription(db, subscriptionId);
@@ -50,6 +51,7 @@ function PayForm({ subscription: sub, member }: PayData) {
         { subscriptionId: sub.id, memberId: member.id, amount: value, method, notes },
         session.get()?.id ?? null,
       );
+      rescheduleAlerts(db).catch(() => {});
       router.replace({ pathname: '/payment/[id]', params: { id: paymentId, fresh: '1' } });
     } catch (e) {
       Alert.alert('No se pudo guardar', String(e));

@@ -19,6 +19,7 @@ import { formatDay, money, parseMoney } from '@/lib/format';
 import { useIsWide } from '@/lib/layout';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
+import { rescheduleAlerts } from '@/lib/notifications';
 
 async function loadEnrollData(db: SQLiteDatabase, memberId: number) {
   const [member, plans, coaches, latest, settings] = await Promise.all([
@@ -103,6 +104,7 @@ function EnrollForm({ member, plans, coaches, latest, settings }: EnrollData) {
         },
         session.get()?.id ?? null,
       );
+      rescheduleAlerts(db).catch(() => {});
       if (paymentId) router.replace({ pathname: '/payment/[id]', params: { id: paymentId, fresh: '1' } });
       else router.back();
     } catch (e) {
