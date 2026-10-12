@@ -56,6 +56,7 @@ export default function RootLayout() {
             <Stack.Screen name="reports/index" options={{ title: 'Reportes' }} />
             <Stack.Screen name="reports/[id]" options={{ title: 'Reporte' }} />
             <Stack.Screen name="reports/schedule" options={{ title: 'Programar reporte' }} />
+            <Stack.Screen name="integrations" options={{ title: 'Integraciones' }} />
             <Stack.Screen name="plans/index" options={{ title: 'Planes' }} />
             <Stack.Screen name="plans/[id]" options={{ title: 'Plan' }} />
             <Stack.Screen name="coaches/index" options={{ title: 'Coaches' }} />
