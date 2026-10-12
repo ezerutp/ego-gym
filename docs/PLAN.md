@@ -105,13 +105,14 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [x] Notificación "Reporte listo" al generarse un reporte programado
 - [x] Historial de reportes generados (solo admin)
 
-### Fase 7 — Integraciones
+### Fase 7 — Integraciones (EGO-09)
 
-- [ ] Pantalla Integraciones (solo admin)
-- [ ] Telegram: pegar el token del bot, detectar el `chat_id` con `/start` y enviar una prueba
-- [ ] Envío automático por Telegram de alertas cortas, reportes programados (PDF o texto) y boletas ("Enviar al admin" en boletas y reportes)
-- [ ] WhatsApp: número del admin y plantillas de mensaje editables (los textos fijos de la fase 5 pasan a ser editables)
-- [ ] Registro de envíos y reintento si no hubo internet
+- [x] Pantalla Integraciones (solo admin)
+- [x] Telegram: pegar el token del bot (se valida con `getMe`), detectar el chat del admin con `/start` (`getUpdates`) y enviar una prueba
+- [x] "Enviar al admin" por Telegram en las boletas de membresía y de venta (como imagen) y en los reportes (en PDF)
+- [x] Envío automático de los reportes programados (PDF o texto) y del resumen diario de avisos a la hora del resumen, cada uno se puede activar o desactivar
+- [x] Registro de envíos (`deliveries`, migración v7) con estado y error; los reportes y resúmenes fallidos se reintentan al abrir la app y en segundo plano (hasta 4 intentos en 3 días)
+- [x] WhatsApp: celular del admin ("WhatsApp al admin" en reportes) y plantillas editables de los mensajes para clientes con `{nombre}`, `{fecha}`, `{monto}` y `{gimnasio}`
 
 ### Fase 8 — Pulido y entrega
 

@@ -2,6 +2,16 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-12 — Fase 7
+
+- **Telegram sin servidor.** La app llama directo a la Bot API con `fetch` (`src/features/integrations/lib/telegram.ts`): `getMe` para validar el token, `getUpdates` para encontrar el chat que envió `/start`, `sendMessage`, `sendDocument` (PDF) y `sendPhoto` (boletas). Los archivos se suben con `FormData` y objetos `{ uri, name, type }`, como permite React Native. Hay un tiempo de espera de 20 s y los errores comunes se traducen al español (token inválido, chat no encontrado, bot bloqueado, sin internet).
+- **El token vive en la tablet.** Se guarda en la tabla `settings`, como el resto de la configuración. Lo ve solo el admin (Integraciones está protegida) y no sale del dispositivo, salvo hacia Telegram. Si se comparte el archivo de la base, el token va dentro; en ese caso hay que revocarlo en @BotFather (`/revoke`).
+- **`getUpdates` y los webhooks.** La detección del chat solo funciona si el bot no tiene un webhook configurado (un bot recién creado no lo tiene) y si el `/start` se envió en las últimas 24 horas.
+- **Registro y reintentos.** Cada envío queda en `deliveries`. Los reportes y el resumen se pueden volver a armar, así que se reintentan solos al abrir la app y en la tarea de segundo plano (hasta 4 intentos, solo los de los últimos 3 días). Las boletas son una captura de pantalla que no se guarda: si fallan, se reenvían desde la boleta.
+- **Resumen diario una vez al día.** `telegramLastSummary` guarda el día del último envío. Se envía en la primera revisión después de la hora del resumen (la misma de las notificaciones), ya sea al abrir la app o en segundo plano.
+- **Plantillas de WhatsApp.** Las `{variables}` desconocidas se dejan tal cual, para que un error al escribir se note en el mensaje y no desaparezca en silencio.
+- **`attachPdf` pasó a `pdf.ts`**, para que el envío no importe el runner de reportes, que a su vez importa el envío (import circular).
+
 ## 2026-10-12 — Fase 6
 
 - **Qué periodo cubre cada programación** (`periodFor` en `schedule.ts`): diaria, ese día; semanal, los 7 días que terminan ese día; mensual, el mes anterior completo. Si se genera antes del mediodía, el diario y el semanal cierran el día anterior, porque a las 8:00 el día recién empieza. Las fechas se probaron con casos de ejemplo (lunes 12/10 14:30, diario 21:00 → 11/10; semanal domingo 21:00 → 05/10 al 11/10; mensual día 1 → setiembre).
