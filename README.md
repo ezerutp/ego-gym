@@ -12,7 +12,8 @@ App Android (React Native + Expo) para gestionar un gimnasio desde una tablet en
 - **Planes, membresías y coaches**: el administrador configura los planes (vienen Mensual, Interdiario, Pase diario y Promo dúo) y los coaches. Desde la ficha se inscribe o renueva al cliente, con personalizado opcional. La membresía se ve como vigente, por vencer o vencida, con filtros en Clientes y un resumen en el Inicio.
 - **Cobros, deudas y boletas**: el botón central **Cobrar** abre una venta de la tienda o el cobro de una membresía. El pago se registra al inscribir o como abono, con pagos parciales y su método. La deuda se calcula sola, y cada pago genera una boleta de membresía para compartir por WhatsApp.
 - **Avisos**: campana en el Inicio y pantalla "Requiere atención" con membresías por vencer, vencidas, deudas y alertas de la tienda. Cada aviso trae un recordatorio por WhatsApp ya escrito y un botón para renovar o cobrar. El resumen diario y los recordatorios de vencimiento llegan como notificación (solo en el APK).
-- **Próximamente**: reportes programados e integraciones (Telegram y WhatsApp).
+- **Reportes**: resumen general, ventas, cobros y clientes por periodo, en PDF o texto para compartir. El administrador puede programarlos (diario, semanal o mensual): se generan solos al abrir la app o en segundo plano, y avisan con una notificación.
+- **Próximamente**: integraciones (envío automático por Telegram y plantillas de WhatsApp).
 - **Todo es local**: SQLite en el dispositivo, sin servidor.
 
 ## Estructura
@@ -31,6 +32,7 @@ src/
     payment/[id].tsx   Boleta de membresía compartible
     charge.tsx         Cobrar: venta de tienda o membresía
     notifications.tsx  Requiere atención: avisos del gimnasio y la tienda
+    reports/           Reportes: generar, programar, historial (solo admin)
     plans/             Planes (solo admin)
     coaches/           Coaches (solo admin)
   features/
@@ -39,6 +41,7 @@ src/
     members/           Clientes y prospectos: base de datos, contacto y componentes
     memberships/       Planes, coaches, membresías y su estado
     payments/          Pagos, deudas y boletas de membresía
+    reports/           Datos, PDF, programación y tarea en segundo plano de los reportes
     store/             Base de datos, lógica y componentes de la tienda
   db/                  Esquema SQLite y ajustes
   lib/                 Formatos, consultas al enfocar, diseño responsive y notificaciones
