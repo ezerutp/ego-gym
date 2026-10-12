@@ -47,3 +47,9 @@ npx expo run:android      # compila e instala en un emulador, tablet o teléfono
 Para generar un APK instalable sin Android Studio: `npx eas-cli@latest build -p android --profile preview`.
 
 Antes de entregar cambios: `npx tsc --noEmit` y `npx expo lint`.
+
+## Documentación
+
+- [`docs/PLAN.md`](docs/PLAN.md): plan de implementación por fases y estado de cada tarea.
+- [`docs/NOTAS.md`](docs/NOTAS.md): hallazgos y decisiones técnicas.
+- [`CHANGELOG.md`](CHANGELOG.md): cambios de cada etapa cerrada.
