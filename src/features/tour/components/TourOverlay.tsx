@@ -1,10 +1,10 @@
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useEffect, useState } from 'react';
-import { Animated, Easing, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Pill } from '@/components/ui';
 import { session, useSession } from '@/features/auth/lib/session';
-import { markTourSeen, measureTarget, targetScroller, tour, useActiveTour, type ActiveTour, type Rect } from '@/features/tour/lib/tour';
+import { markTourSeen, measureTarget, registerAnchor, targetScroller, tour, useActiveTour, type ActiveTour, type Rect } from '@/features/tour/lib/tour';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
 const PAD = 8;
@@ -15,11 +15,13 @@ const ARROW = 14;
 const CORNER = 18;
 /** Wider than any screen: the spotlight is a view whose huge border is the dark shade around the hole. */
 const SHADE = 3000;
-/** Below this much free space under the target, the card goes above it. */
-const MIN_SPACE_BELOW = 240;
+/** Room the card needs next to the highlight (its usual height plus the gap). */
+const CARD_SPACE = 250;
 /** Where a scrolled-in target ends up, as a fraction of the screen height from the top. */
-const TARGET_TOP = 0.2;
+const TARGET_TOP = 0.15;
 const SCROLL_SETTLE_MS = 400;
+/** Scrollable content near the edges may sit under the header or the bottom tab bar. */
+const EDGE = 90;
 const MOVE_MS = 320;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -30,20 +32,29 @@ async function locate(id: string, height: number) {
   const r = await measureTarget(id);
   const scroller = targetScroller(id);
   if (!r || !scroller) return r;
-  const offscreen = r.y < 0 || r.y + r.height > height;
-  const fitsBelow = height - (r.y + r.height + PAD) >= MIN_SPACE_BELOW;
-  const fitsAbove = r.y - PAD >= MIN_SPACE_BELOW;
+  const offscreen = r.y < EDGE / 2 || r.y + r.height > height - EDGE;
+  const fitsBelow = height - (r.y + r.height + PAD) >= CARD_SPACE;
+  const fitsAbove = r.y - PAD >= CARD_SPACE;
   if (!offscreen && (fitsBelow || fitsAbove)) return r;
   scroller.scrollBy(r.y - height * TARGET_TOP);
   await sleep(SCROLL_SETTLE_MS);
   return measureTarget(id);
 }
 
-/** Round buttons get a round hole; everything else gets soft corners that never exceed half its size. */
-function holeFor(r: Rect): Rect & { radius: number } {
+type Layout = { hole: Rect & { radius: number }; below: boolean };
+
+/**
+ * Where the highlight and the card go. Round buttons get a round hole, the rest soft corners.
+ * When the card fits neither above nor below (a target taller than the screen), only the top
+ * of the target is highlighted so the card can sit right under it without covering it.
+ */
+function layoutFor(r: Rect, height: number): Layout {
   const hole = { x: r.x - PAD, y: r.y - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 };
+  const fitsBelow = height - (hole.y + hole.height) >= CARD_SPACE;
+  const fitsAbove = hole.y >= CARD_SPACE;
+  if (!fitsBelow && !fitsAbove) hole.height = Math.max(height - CARD_SPACE - hole.y, 48);
   const round = Math.abs(r.width - r.height) < 8;
-  return { ...hole, radius: round ? hole.width / 2 : Math.min(CORNER, hole.height / 2) };
+  return { hole: { ...hole, radius: round ? hole.width / 2 : Math.min(CORNER, hole.height / 2) }, below: fitsBelow || !fitsAbove };
 }
 
 type Spot = { x: Animated.Value; y: Animated.Value; w: Animated.Value; h: Animated.Value; r: Animated.Value };
@@ -53,7 +64,8 @@ export function TourOverlay() {
   const active = useActiveTour();
   const user = useSession();
   const db = useSQLiteContext();
-  const { width, height } = useWindowDimensions();
+  const anchor = useRef<View>(null);
+  const [{ width, height }, setSize] = useState({ width: 0, height: 0 });
   const [measured, setMeasured] = useState<{ key: string; rect: Rect } | null>(null);
   const [fade] = useState(() => new Animated.Value(0));
   const [card] = useState(() => new Animated.Value(0));
@@ -80,12 +92,14 @@ export function TourOverlay() {
     [db, fade],
   );
 
+  useEffect(() => registerAnchor(anchor), []);
+
   useEffect(() => {
     if (active && !user) tour.stop();
   }, [active, user]);
 
   useEffect(() => {
-    if (!active) return;
+    if (!active || !height) return;
     let cancelled = false;
     Animated.timing(card, { toValue: 0, duration: 120, useNativeDriver: true }).start();
     locate(active.steps[active.index].target, height).then((r) => {
@@ -95,7 +109,7 @@ export function TourOverlay() {
         if (!tour.next()) finish(active);
         return;
       }
-      const hole = holeFor(r);
+      const { hole } = layoutFor(r, height);
       const values = { x: hole.x, y: hole.y, w: hole.width, h: hole.height, r: hole.radius };
       const first = !shown;
       if (first) {
@@ -118,24 +132,35 @@ export function TourOverlay() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, key, height, fade, card, spot, finish]);
 
-  if (!active || !shown) return null;
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, { opacity: fade }]}>
-      <Spotlight spot={spot} />
-      {rect && (
-        <Card
-          active={active}
-          hole={holeFor(rect)}
-          width={width}
-          height={height}
-          progress={card}
-          onNext={() => {
-            if (!tour.next()) finish(active);
-          }}
-          onSkip={() => finish(active)}
-        />
+    <>
+      {/* Always mounted, so targets can be measured against the overlay before the first step shows. */}
+      <View
+        ref={anchor}
+        collapsable={false}
+        pointerEvents="none"
+        style={StyleSheet.absoluteFill}
+        onLayout={(e) => setSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}
+      />
+      {active && shown && (
+        <Animated.View style={[StyleSheet.absoluteFill, { opacity: fade }]}>
+          <Spotlight spot={spot} />
+          {rect && (
+            <Card
+              active={active}
+              layout={layoutFor(rect, height)}
+              width={width}
+              height={height}
+              progress={card}
+              onNext={() => {
+                if (!tour.next()) finish(active);
+              }}
+              onSkip={() => finish(active)}
+            />
+          )}
+        </Animated.View>
       )}
-    </Animated.View>
+    </>
   );
 }
 
@@ -163,7 +188,7 @@ function Spotlight({ spot }: { spot: Spot }) {
 
 type CardProps = {
   active: ActiveTour;
-  hole: Rect;
+  layout: Layout;
   width: number;
   height: number;
   progress: Animated.Value;
@@ -171,7 +196,8 @@ type CardProps = {
   onSkip: () => void;
 };
 
-function Card({ active, hole, width, height, progress, onNext, onSkip }: CardProps) {
+function Card({ active, layout, width, height, progress, onNext, onSkip }: CardProps) {
+  const { hole, below } = layout;
   const styles = useStyles();
   const { font } = useTheme();
   const step = active.steps[active.index];
@@ -179,8 +205,7 @@ function Card({ active, hole, width, height, progress, onNext, onSkip }: CardPro
   const cardWidth = Math.min(CARD_MAX, width - MARGIN * 2);
   const center = hole.x + hole.width / 2;
   const left = Math.min(Math.max(center - cardWidth / 2, MARGIN), width - cardWidth - MARGIN);
-  const below = height - (hole.y + hole.height) >= MIN_SPACE_BELOW || hole.y < MIN_SPACE_BELOW;
-  const position = below ? { top: Math.min(hole.y + hole.height + GAP, height - MIN_SPACE_BELOW) } : { bottom: height - hole.y + GAP };
+  const position = below ? { top: hole.y + hole.height + GAP } : { bottom: height - hole.y + GAP };
   const arrowLeft = Math.min(Math.max(center - left - ARROW / 2, radius.lg), cardWidth - radius.lg - ARROW);
   const shift = progress.interpolate({ inputRange: [0, 1], outputRange: [below ? 10 : -10, 0] });
 

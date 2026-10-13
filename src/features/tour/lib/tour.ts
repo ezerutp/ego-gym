@@ -14,6 +14,15 @@ export type Scroller = { scrollBy: (dy: number) => void };
 type Target = { ref: RefObject<View | null>; scroller: Scroller | null };
 
 const targets = new Map<string, Target>();
+/** A view that fills the tour overlay; targets are measured against it, not against the window. */
+let anchor: RefObject<View | null> | null = null;
+
+export function registerAnchor(ref: RefObject<View | null>) {
+  anchor = ref;
+  return () => {
+    if (anchor === ref) anchor = null;
+  };
+}
 let active: ActiveTour | null = null;
 const listeners = new Set<() => void>();
 
@@ -34,13 +43,22 @@ export function targetScroller(id: string) {
   return targets.get(id)?.scroller ?? null;
 }
 
-/** Window coordinates of a registered target, or null when it is not on screen. */
-export function measureTarget(id: string) {
+function windowRect(view: View) {
+  return new Promise<Rect>((resolve) => view.measureInWindow((x, y, width, height) => resolve({ x, y, width, height })));
+}
+
+/**
+ * Position of a registered target inside the tour overlay, or null when it is not on screen.
+ * Both views are measured the same way and subtracted: on Android, window coordinates can be
+ * shifted by the status bar, which left every highlight a few dozen pixels too high.
+ */
+export async function measureTarget(id: string) {
   const view = targets.get(id)?.ref.current;
-  if (!view) return Promise.resolve(null);
-  return new Promise<Rect | null>((resolve) => {
-    view.measureInWindow((x, y, width, height) => resolve(width > 0 && height > 0 ? { x, y, width, height } : null));
-  });
+  const base = anchor?.current;
+  if (!view || !base) return null;
+  const [r, a] = await Promise.all([windowRect(view), windowRect(base)]);
+  if (r.width <= 0 || r.height <= 0) return null;
+  return { x: r.x - a.x, y: r.y - a.y, width: r.width, height: r.height };
 }
 
 export const tour = {
