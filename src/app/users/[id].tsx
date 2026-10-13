@@ -5,7 +5,7 @@ import { Alert, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Switch,
 
 import { Button, Card, Field } from '@/components/ui';
 import { AdminOnly } from '@/features/auth/components/AdminOnly';
-import { createUser, getUser, PIN_LENGTH, ROLE_LABELS, setPin, updateUser, wouldRemoveLastAdmin, type Role, type User } from '@/features/auth/db/users';
+import { createUser, getUser, isLastAdmin, PIN_LENGTH, ROLE_LABELS, setPin, updateUser, wouldRemoveLastAdmin, type Role, type User } from '@/features/auth/db/users';
 import { session } from '@/features/auth/lib/session';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
@@ -26,15 +26,19 @@ export default function UserScreen() {
 function UserScreenContent() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const isNew = id === 'new';
-  const { data } = useFocusQuery(async (db) => (isNew ? null : await getUser(db, Number(id))), [id]);
+  const { data } = useFocusQuery(async (db) => {
+    if (isNew) return { user: null, lastAdmin: false };
+    const user = await getUser(db, Number(id));
+    return { user, lastAdmin: user ? await isLastAdmin(db, user.id) : false };
+  }, [id]);
 
-  if (!isNew && !data) return null;
-  return <UserForm key={id} user={data ?? null} />;
+  if (!isNew && !data?.user) return null;
+  return <UserForm key={id} user={data?.user ?? null} lastAdmin={data?.lastAdmin ?? false} />;
 }
 
 const onlyDigits = (v: string) => v.replace(/\D/g, '').slice(0, PIN_LENGTH);
 
-function UserForm({ user }: { user: User | null }) {
+function UserForm({ user, lastAdmin }: { user: User | null; lastAdmin: boolean }) {
   const styles = useStyles();
   const { colors, font } = useTheme();
   const db = useSQLiteContext();
@@ -82,22 +86,31 @@ function UserForm({ user }: { user: User | null }) {
             <View style={styles.roles}>
               {ROLES.map((r) => {
                 const selected = role === r.role;
+                const locked = r.role === 'reception' && lastAdmin;
                 return (
-                  <Pressable key={r.role} onPress={() => setRole(r.role)} style={[styles.role, selected && styles.roleSelected]}>
+                  <Pressable
+                    key={r.role}
+                    onPress={() => setRole(r.role)}
+                    disabled={locked}
+                    style={[styles.role, selected && styles.roleSelected, locked && { opacity: 0.5 }]}
+                  >
                     <Text style={[font.h3, selected && { color: colors.primaryDark }]}>{ROLE_LABELS[r.role]}</Text>
                     <Text style={font.small}>{r.hint}</Text>
                   </Pressable>
                 );
               })}
             </View>
+            {lastAdmin && <Text style={font.small}>Es el único administrador activo: para cambiar su rol, primero crea otro administrador.</Text>}
           </View>
           {user && (
             <View style={styles.switchRow}>
               <View style={{ flex: 1 }}>
                 <Text style={font.h3}>Activo</Text>
-                <Text style={font.small}>Un usuario desactivado ya no aparece al entrar.</Text>
+                <Text style={font.small}>
+                  {lastAdmin ? 'Es el único administrador activo: no se puede desactivar.' : 'Un usuario desactivado ya no aparece al entrar.'}
+                </Text>
               </View>
-              <Switch value={active} onValueChange={setActive} trackColor={{ true: colors.primary, false: colors.border }} />
+              <Switch value={active} onValueChange={setActive} disabled={lastAdmin} trackColor={{ true: colors.primary, false: colors.border }} />
             </View>
           )}
         </Card>
