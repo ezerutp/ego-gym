@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Card, Field, IconCircle, Pill, Stepper, type IconName } from '@/components/ui';
 import { AdminOnly } from '@/features/auth/components/AdminOnly';
 import { formatRecoveryCode, generateRecoveryCode, storeRecoveryCode } from '@/features/auth/lib/recovery';
+import { UpdatesSection } from '@/features/updates/components/UpdatesSection';
 import { session } from '@/features/auth/lib/session';
 import { BackupError, exportBackup, restoreBackup } from '@/features/backup/backup';
 import { getSettings, saveSettings, type Settings } from '@/db/settings';
@@ -232,6 +233,13 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
               <Button title="Exportar respaldo" icon="download-outline" loading={backingUp} onPress={backup} style={{ flexGrow: 1 }} />
               <Button title="Restaurar respaldo" icon="refresh-circle-outline" variant="secondary" onPress={restore} style={{ flexGrow: 1 }} />
             </View>
+          </Section>
+
+          <Section icon="cloud-download" title="Actualizaciones" subtitle="Instala releases de GitHub">
+            <Text style={font.small}>
+              Apunta al repositorio, busca el último release con APK y descárgalo e instálalo desde aquí. Cada release debe subir el `versionCode` para que Android lo acepte como actualización.
+            </Text>
+            <UpdatesSection owner={form.updateOwner} repo={form.updateRepo} onOwner={(v) => set('updateOwner', v)} onRepo={(v) => set('updateRepo', v)} />
           </Section>
 
           <Section icon="server" title="Datos locales" subtitle="Guardados en este dispositivo">
