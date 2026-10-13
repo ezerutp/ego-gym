@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { IconName } from '@/components/ui';
 import { UserAvatar } from '@/features/auth/components/UserAvatar';
 import { session, useSession } from '@/features/auth/lib/session';
+import { TourTarget } from '@/features/tour/components/TourTarget';
 import { cartCount, useCart } from '@/features/store/lib/cart';
 import { useIsWide } from '@/lib/layout';
 import { makeStyles, radius, useTheme } from '@/theme';
@@ -46,16 +47,18 @@ function TabItem({ name, state, navigation, vertical }: TabBarProps & { name: ke
   const focused = state.index === index;
   const color = focused ? colors.primary : colors.faint;
   return (
-    <Pressable
-      style={[vertical ? styles.railTab : styles.tab, vertical && focused && styles.railTabActive]}
-      onPress={() => {
-        Haptics.selectionAsync();
-        if (!focused) navigation.navigate(route.name);
-      }}
-    >
-      <Ionicons name={focused ? meta.iconActive : meta.icon} size={24} color={color} />
-      <Text style={[styles.label, { color }]}>{meta.label}</Text>
-    </Pressable>
+    <TourTarget id={`nav-${name === 'index' ? 'home' : name}`} style={vertical ? undefined : styles.tab}>
+      <Pressable
+        style={[vertical ? styles.railTab : styles.tab, vertical && focused && styles.railTabActive]}
+        onPress={() => {
+          Haptics.selectionAsync();
+          if (!focused) navigation.navigate(route.name);
+        }}
+      >
+        <Ionicons name={focused ? meta.iconActive : meta.icon} size={24} color={color} />
+        <Text style={[styles.label, { color }]}>{meta.label}</Text>
+      </Pressable>
+    </TourTarget>
   );
 }
 
@@ -90,9 +93,9 @@ function TabBar(props: TabBarProps) {
       <TabItem {...props} name="index" />
       <TabItem {...props} name="members" />
       <View style={styles.tab}>
-        <View style={styles.sellLift}>
+        <TourTarget id="nav-charge" style={styles.sellLift}>
           <ChargeButton size={62} />
-        </View>
+        </TourTarget>
         <Text style={[styles.label, { color: colors.primary, marginTop: 2 }]}>Cobrar</Text>
       </View>
       <TabItem {...props} name="store" />
@@ -109,7 +112,9 @@ function SideRail(props: TabBarProps) {
     <View style={[styles.rail, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20, paddingLeft: insets.left + 12 }]}>
       <Text style={styles.brand}>EGO</Text>
       <View style={styles.railAction}>
-        <ChargeButton size={56} />
+        <TourTarget id="nav-charge">
+          <ChargeButton size={56} />
+        </TourTarget>
         <Text style={[styles.label, { color: colors.primary }]}>Cobrar</Text>
       </View>
       <View style={styles.railTabs}>
@@ -129,13 +134,15 @@ function LockButton() {
   const user = useSession();
   if (!user) return null;
   return (
-    <Pressable onPress={session.signOut} style={({ pressed }) => [styles.lock, pressed && { opacity: 0.7 }]}>
-      <UserAvatar name={user.name} role={user.role} size={40} />
-      <View style={styles.lockRow}>
-        <Ionicons name="lock-closed" size={12} color={colors.muted} />
-        <Text style={[styles.label, { color: colors.muted }]}>Bloquear</Text>
-      </View>
-    </Pressable>
+    <TourTarget id="nav-lock">
+      <Pressable onPress={session.signOut} style={({ pressed }) => [styles.lock, pressed && { opacity: 0.7 }]}>
+        <UserAvatar name={user.name} role={user.role} size={40} />
+        <View style={styles.lockRow}>
+          <Ionicons name="lock-closed" size={12} color={colors.muted} />
+          <Text style={[styles.label, { color: colors.muted }]}>Bloquear</Text>
+        </View>
+      </Pressable>
+    </TourTarget>
   );
 }
 
