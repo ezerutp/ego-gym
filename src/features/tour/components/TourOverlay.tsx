@@ -1,6 +1,6 @@
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useState } from 'react';
-import { Animated, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Animated, Easing, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { Button, Pill } from '@/components/ui';
 import { session, useSession } from '@/features/auth/lib/session';
@@ -8,16 +8,22 @@ import { markTourSeen, measureTarget, targetScroller, tour, useActiveTour, type 
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
 const PAD = 8;
-const GAP = 14;
+const GAP = 16;
 const MARGIN = 16;
 const CARD_MAX = 400;
+const ARROW = 14;
+const CORNER = 18;
+/** Wider than any screen: the spotlight is a view whose huge border is the dark shade around the hole. */
+const SHADE = 3000;
 /** Below this much free space under the target, the card goes above it. */
 const MIN_SPACE_BELOW = 240;
 /** Where a scrolled-in target ends up, as a fraction of the screen height from the top. */
 const TARGET_TOP = 0.2;
 const SCROLL_SETTLE_MS = 400;
+const MOVE_MS = 320;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const ease = Easing.out(Easing.cubic);
 
 /** Measures a target; if it is off screen or leaves no room for the card, scrolls it up first and measures again. */
 async function locate(id: string, height: number) {
@@ -33,24 +39,45 @@ async function locate(id: string, height: number) {
   return measureTarget(id);
 }
 
-/** Dims the screen around the current step's target and explains it in a card. */
+/** Round buttons get a round hole; everything else gets soft corners that never exceed half its size. */
+function holeFor(r: Rect): Rect & { radius: number } {
+  const hole = { x: r.x - PAD, y: r.y - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 };
+  const round = Math.abs(r.width - r.height) < 8;
+  return { ...hole, radius: round ? hole.width / 2 : Math.min(CORNER, hole.height / 2) };
+}
+
+type Spot = { x: Animated.Value; y: Animated.Value; w: Animated.Value; h: Animated.Value; r: Animated.Value };
+
+/** Dims the screen around the current step's target, glides between steps and explains each one in a card. */
 export function TourOverlay() {
   const active = useActiveTour();
   const user = useSession();
   const db = useSQLiteContext();
   const { width, height } = useWindowDimensions();
   const [measured, setMeasured] = useState<{ key: string; rect: Rect } | null>(null);
-  const [opacity] = useState(() => new Animated.Value(0));
+  const [fade] = useState(() => new Animated.Value(0));
+  const [card] = useState(() => new Animated.Value(0));
+  const [spot] = useState<Spot>(() => ({
+    x: new Animated.Value(0),
+    y: new Animated.Value(0),
+    w: new Animated.Value(0),
+    h: new Animated.Value(0),
+    r: new Animated.Value(0),
+  }));
   const key = active ? `${active.id}:${active.index}:${width}x${height}` : '';
   const rect = measured?.key === key ? measured.rect : null;
+  const shown = !!active && !!measured && measured.key.startsWith(`${active.id}:`);
 
   const finish = useCallback(
     (t: ActiveTour) => {
-      tour.stop();
       const id = session.get()?.id;
       if (id) markTourSeen(db, id, t.id).catch(() => {});
+      Animated.timing(fade, { toValue: 0, duration: 200, easing: ease, useNativeDriver: false }).start(() => {
+        setMeasured(null);
+        tour.stop();
+      });
     },
-    [db],
+    [db, fade],
   );
 
   useEffect(() => {
@@ -60,7 +87,7 @@ export function TourOverlay() {
   useEffect(() => {
     if (!active) return;
     let cancelled = false;
-    opacity.setValue(0);
+    Animated.timing(card, { toValue: 0, duration: 120, useNativeDriver: true }).start();
     locate(active.steps[active.index].target, height).then((r) => {
       if (cancelled) return;
       if (!r) {
@@ -68,109 +95,128 @@ export function TourOverlay() {
         if (!tour.next()) finish(active);
         return;
       }
+      const hole = holeFor(r);
+      const values = { x: hole.x, y: hole.y, w: hole.width, h: hole.height, r: hole.radius };
+      const first = !shown;
+      if (first) {
+        (Object.keys(values) as (keyof Spot)[]).forEach((k) => spot[k].setValue(values[k]));
+        Animated.timing(fade, { toValue: 1, duration: 260, easing: ease, useNativeDriver: false }).start();
+      } else {
+        Animated.parallel(
+          (Object.keys(values) as (keyof Spot)[]).map((k) =>
+            Animated.timing(spot[k], { toValue: values[k], duration: MOVE_MS, easing: ease, useNativeDriver: false }),
+          ),
+        ).start();
+      }
       setMeasured({ key, rect: r });
-      Animated.timing(opacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+      Animated.timing(card, { toValue: 1, duration: 220, delay: first ? 120 : MOVE_MS - 60, easing: ease, useNativeDriver: true }).start();
     });
     return () => {
       cancelled = true;
     };
-  }, [active, key, height, opacity, finish]);
+    // `shown` only decides between appearing and gliding; it must not restart the step.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, key, height, fade, card, spot, finish]);
 
-  if (!active || !rect) return null;
-  return <TourStepView active={active} rect={rect} width={width} height={height} opacity={opacity} onFinish={finish} />;
-}
-
-type StepViewProps = { active: ActiveTour; rect: Rect; width: number; height: number; opacity: Animated.Value; onFinish: (t: ActiveTour) => void };
-
-function TourStepView({ active, rect, width, height, opacity, onFinish: finish }: StepViewProps) {
-  const styles = useStyles();
-  const step = active.steps[active.index];
-  const last = active.index === active.steps.length - 1;
-  const hole = { x: rect.x - PAD, y: rect.y - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2 };
-
+  if (!active || !shown) return null;
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, { opacity }]}>
-      <Shade hole={hole} width={width} height={height} />
-      <View pointerEvents="none" style={[styles.ring, { left: hole.x, top: hole.y, width: hole.width, height: hole.height }]} />
-      <Card
-        hole={hole}
-        width={width}
-        height={height}
-        step={active.index + 1}
-        total={active.steps.length}
-        title={step.title}
-        text={step.text}
-        last={last}
-        onBack={active.index > 0 ? tour.back : undefined}
-        onNext={() => {
-          if (!tour.next()) finish(active);
-        }}
-        onSkip={() => finish(active)}
-      />
+    <Animated.View style={[StyleSheet.absoluteFill, { opacity: fade }]}>
+      <Spotlight spot={spot} />
+      {rect && (
+        <Card
+          active={active}
+          hole={holeFor(rect)}
+          width={width}
+          height={height}
+          progress={card}
+          onNext={() => {
+            if (!tour.next()) finish(active);
+          }}
+          onSkip={() => finish(active)}
+        />
+      )}
     </Animated.View>
   );
 }
 
-/** Four dark panels around the hole; together they block touches everywhere except the highlight. */
-function Shade({ hole, width, height }: { hole: Rect; width: number; height: number }) {
-  const { colors } = useTheme();
-  const shade = { position: 'absolute' as const, backgroundColor: colors.overlay };
-  const bottom = hole.y + hole.height;
-  const right = hole.x + hole.width;
+/** One view whose enormous border is the shade: its inner edge is the rounded hole, and it also blocks touches. */
+function Spotlight({ spot }: { spot: Spot }) {
+  const styles = useStyles();
   return (
     <>
-      <View style={[shade, { left: 0, top: 0, width, height: Math.max(hole.y, 0) }]} />
-      <View style={[shade, { left: 0, top: bottom, width, height: Math.max(height - bottom, 0) }]} />
-      <View style={[shade, { left: 0, top: hole.y, width: Math.max(hole.x, 0), height: hole.height }]} />
-      <View style={[shade, { left: right, top: hole.y, width: Math.max(width - right, 0), height: hole.height }]} />
-      {/* Taps on the highlighted element itself are swallowed too, so the tour cannot be left half way. */}
-      <View style={{ position: 'absolute', left: hole.x, top: hole.y, width: hole.width, height: hole.height }} />
+      <Animated.View
+        style={[
+          styles.shade,
+          {
+            left: Animated.subtract(spot.x, SHADE),
+            top: Animated.subtract(spot.y, SHADE),
+            width: Animated.add(spot.w, SHADE * 2),
+            height: Animated.add(spot.h, SHADE * 2),
+            borderRadius: Animated.add(spot.r, SHADE),
+          },
+        ]}
+      />
+      <Animated.View pointerEvents="none" style={[styles.ring, { left: spot.x, top: spot.y, width: spot.w, height: spot.h, borderRadius: spot.r }]} />
     </>
   );
 }
 
 type CardProps = {
+  active: ActiveTour;
   hole: Rect;
   width: number;
   height: number;
-  step: number;
-  total: number;
-  title: string;
-  text: string;
-  last: boolean;
-  onBack?: () => void;
+  progress: Animated.Value;
   onNext: () => void;
   onSkip: () => void;
 };
 
-function Card({ hole, width, height, step, total, title, text, last, onBack, onNext, onSkip }: CardProps) {
+function Card({ active, hole, width, height, progress, onNext, onSkip }: CardProps) {
   const styles = useStyles();
   const { font } = useTheme();
+  const step = active.steps[active.index];
+  const last = active.index === active.steps.length - 1;
   const cardWidth = Math.min(CARD_MAX, width - MARGIN * 2);
   const center = hole.x + hole.width / 2;
   const left = Math.min(Math.max(center - cardWidth / 2, MARGIN), width - cardWidth - MARGIN);
   const below = height - (hole.y + hole.height) >= MIN_SPACE_BELOW || hole.y < MIN_SPACE_BELOW;
   const position = below ? { top: Math.min(hole.y + hole.height + GAP, height - MIN_SPACE_BELOW) } : { bottom: height - hole.y + GAP };
+  const arrowLeft = Math.min(Math.max(center - left - ARROW / 2, radius.lg), cardWidth - radius.lg - ARROW);
+  const shift = progress.interpolate({ inputRange: [0, 1], outputRange: [below ? 10 : -10, 0] });
 
   return (
-    <View style={[styles.card, { width: cardWidth, left }, position]}>
-      <Pill label={`Paso ${step} de ${total}`} tone="success" />
-      <Text style={font.h2}>{title}</Text>
-      <Text style={font.body}>{text}</Text>
+    <Animated.View style={[styles.card, { width: cardWidth, left, opacity: progress, transform: [{ translateY: shift }] }, position]}>
+      <View style={[styles.arrow, { left: arrowLeft }, below ? { top: -ARROW / 2 } : { bottom: -ARROW / 2 }]} />
+      <View style={styles.header}>
+        <Pill label={`Paso ${active.index + 1} de ${active.steps.length}`} tone="success" />
+        <View style={styles.dots}>
+          {active.steps.map((s, i) => (
+            <View key={s.target} style={[styles.dot, i === active.index && styles.dotActive]} />
+          ))}
+        </View>
+      </View>
+      <Text style={font.h2}>{step.title}</Text>
+      <Text style={font.body}>{step.text}</Text>
       <View style={styles.actions}>
         <Button title="Saltar guía" variant="ghost" onPress={onSkip} style={styles.skip} />
         <View style={{ flex: 1 }} />
-        {onBack && <Button title="Atrás" variant="secondary" onPress={onBack} style={styles.action} />}
+        {active.index > 0 && <Button title="Atrás" variant="secondary" onPress={tour.back} style={styles.action} />}
         <Button title={last ? '¡Listo!' : 'Siguiente'} icon={last ? 'checkmark' : 'arrow-forward'} onPress={onNext} style={styles.action} />
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
 const useStyles = makeStyles(({ colors, shadow }) =>
   StyleSheet.create({
-    ring: { position: 'absolute', borderRadius: radius.md, borderWidth: 3, borderColor: colors.white },
+    shade: { position: 'absolute', borderWidth: SHADE, borderColor: colors.overlay },
+    ring: { position: 'absolute', borderWidth: 2, borderColor: colors.primary },
     card: { position: 'absolute', backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm, ...shadow, elevation: 16 },
+    arrow: { position: 'absolute', width: ARROW, height: ARROW, backgroundColor: colors.surface, transform: [{ rotate: '45deg' }] },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    dots: { flexDirection: 'row', gap: 5 },
+    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.border },
+    dotActive: { width: 16, backgroundColor: colors.primary },
     actions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
     skip: { minHeight: 44, paddingHorizontal: 0 },
     action: { minHeight: 44 },
