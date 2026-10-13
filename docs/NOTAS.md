@@ -2,6 +2,13 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-13 — Actualizaciones desde GitHub
+
+- **Sin Play Store ni EAS Update.** El APK se publica como asset de un release de GitHub y la app lo instala con el instalador del sistema (`expo-intent-launcher`, acción VIEW sobre el `content://` de `getContentUriAsync`). EAS Update no sirve: necesita su servidor y solo actualiza JS, no cambios nativos.
+- **La BD sobrevive a la actualización.** Android conserva el almacenamiento privado al actualizar (mismo paquete y misma firma), y `migrateDb` sube el esquema sin borrar datos. Condiciones: firmar siempre con la misma clave (la actual es la de depuración) y subir el `versionCode` en cada release; desinstalar sí borra todo, por eso la pantalla recomienda el respaldo.
+- **El permiso se concede una sola vez.** `REQUEST_INSTALL_PACKAGES` va en el manifiesto y Android pide permitir "instalar apps desconocidas" para EGO Gym; la pantalla abre ese ajuste directo (`MANAGE_UNKNOWN_APP_SOURCES` del propio paquete).
+- **La API pública de GitHub alcanza.** `releases/latest` sin login permite 60 consultas por hora, suficiente para revisar al abrir Ajustes. Se elige el primer asset `.apk` del release y se compara el tag con `expoConfig.version`.
+
 ## 2026-10-13 — Recuperación de PIN
 
 - **Dos vías, una siempre offline.** El código de recuperación (8 caracteres, formato XXXX-XXXX) vive como hash + sal en `settings`, así que no requiere migración y funciona sin internet. El código de Telegram (6 dígitos, tabla `pin_resets` en la migración v8) es de un solo uso, vence en 10 minutos y se agota en 3 intentos fallidos.
