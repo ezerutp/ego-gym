@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { IconName } from '@/components/ui';
 import { cartCount, useCart } from '@/features/store/lib/cart';
+import { TourTarget } from '@/features/tour/components/TourTarget';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
 const SECTIONS: Record<string, { label: string; icon: IconName }> = {
@@ -40,32 +41,34 @@ function SectionBar({ state, navigation }: TabBarProps) {
 
   return (
     <View style={[styles.bar, { paddingTop: insets.top + spacing.sm }]}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.segments}>
-        {state.routes.map((route, index) => {
-          const meta = SECTIONS[route.name];
-          if (!meta) return null;
-          const focused = state.index === index;
-          const fg = focused ? colors.white : colors.text;
-          return (
-            <Pressable
-              key={route.key}
-              onPress={() => {
-                Haptics.selectionAsync();
-                if (!focused) navigation.navigate(route.name);
-              }}
-              style={[styles.segment, focused && styles.segmentActive]}
-            >
-              <Ionicons name={meta.icon} size={18} color={fg} />
-              <Text style={[styles.segmentLabel, { color: fg }]}>{meta.label}</Text>
-              {route.name === 'sell' && count > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{count}</Text>
-                </View>
-              )}
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+      <TourTarget id="store-sections">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.segments}>
+          {state.routes.map((route, index) => {
+            const meta = SECTIONS[route.name];
+            if (!meta) return null;
+            const focused = state.index === index;
+            const fg = focused ? colors.white : colors.text;
+            return (
+              <Pressable
+                key={route.key}
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  if (!focused) navigation.navigate(route.name);
+                }}
+                style={[styles.segment, focused && styles.segmentActive]}
+              >
+                <Ionicons name={meta.icon} size={18} color={fg} />
+                <Text style={[styles.segmentLabel, { color: fg }]}>{meta.label}</Text>
+                {route.name === 'sell' && count > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{count}</Text>
+                  </View>
+                )}
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </TourTarget>
     </View>
   );
 }

@@ -2,6 +2,13 @@
 
 Cambios visibles de la app por etapa. Durante una fase, los cambios se acumulan en "Sin publicar" y pasan a la sección de la fase cuando esta se cierra.
 
+## [Sin publicar]
+
+### Agregado
+
+- Guía interactiva: la primera vez que cada usuario abre Inicio, Clientes, Cobrar, Tienda y Más, aparecen globos que resaltan cada opción y explican para qué sirve, paso a paso, con botones Atrás, Siguiente y Saltar. Los pasos de configuración solo se muestran al administrador.
+- "Ver la guía otra vez" en Más.
+
 ## Fase 8 — Pulido y entrega (2026-10-12)
 
 ### Agregado
