@@ -68,3 +68,11 @@ export async function wouldRemoveLastAdmin(db: SQLiteDatabase, id: number, next:
   const row = await db.getFirstAsync<{ n: number }>("SELECT COUNT(*) AS n FROM users WHERE role = 'admin' AND active = 1 AND id != ?", id);
   return (row?.n ?? 0) === 0;
 }
+
+/** True when `id` is an active admin and no other active admin exists. */
+export async function isLastAdmin(db: SQLiteDatabase, id: number) {
+  const user = await getUser(db, id);
+  if (!user || user.role !== 'admin' || user.active !== 1) return false;
+  const row = await db.getFirstAsync<{ n: number }>("SELECT COUNT(*) AS n FROM users WHERE role = 'admin' AND active = 1 AND id != ?", id);
+  return (row?.n ?? 0) === 0;
+}
