@@ -2,6 +2,12 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-13 — Reporte general con gráficos
+
+- **Gráficos en SVG puro, sin dependencias.** El PDF se genera con `expo-print` (un WebView), así que el SVG inline funciona sin librerías ni internet: barras apiladas día a día, línea de acumulado, histograma en 5 rangos fijos y dona por método.
+- **Comparar exige el periodo anterior.** El resumen consulta los mismos totales en el periodo previo de igual longitud para el % de cada KPI; sin datos previos no se muestra insignia.
+- **Solo el resumen lleva gráficos.** Los reportes de ventas, cobros y clientes mantienen su formato de tablas.
+
 ## 2026-10-13 — Actualizaciones desde GitHub
 
 - **Sin Play Store ni EAS Update.** El APK se publica como asset de un release de GitHub y la app lo instala con el instalador del sistema (`expo-intent-launcher`, acción VIEW sobre el `content://` de `getContentUriAsync`). EAS Update no sirve: necesita su servidor y solo actualiza JS, no cambios nativos.
