@@ -1,4 +1,5 @@
-import { Directory, File, Paths, getContentUriAsync } from 'expo-file-system';
+import { Directory, File, Paths } from 'expo-file-system';
+import { getContentUriAsync } from 'expo-file-system/legacy';
 import { ActivityAction, startActivityAsync } from 'expo-intent-launcher';
 import { Platform } from 'react-native';
 
