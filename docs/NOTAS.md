@@ -2,6 +2,12 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-13 — Reporte general con gráficos
+
+- **Gráficos en SVG puro, sin dependencias.** El PDF se genera con `expo-print` (un WebView), así que el SVG inline funciona sin librerías ni internet: barras apiladas día a día, línea de acumulado, histograma en 5 rangos fijos y dona por método.
+- **Comparar exige el periodo anterior.** El resumen consulta los mismos totales en el periodo previo de igual longitud para el % de cada KPI; sin datos previos no se muestra insignia.
+- **Solo el resumen lleva gráficos.** Los reportes de ventas, cobros y clientes mantienen su formato de tablas.
+
 ## 2026-10-13 — Confirmación de cobros y último admin
 
 - **El guard del último admin ya existía y se probó.** `wouldRemoveLastAdmin` bloquea degradar o desactivar al único administrador (verificado contra SQLite en 5 casos). Lo nuevo es que el formulario lo muestra de frente: la opción Recepción y el interruptor Activo se deshabilitan con su motivo, en vez de fallar recién al guardar.

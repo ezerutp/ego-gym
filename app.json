@@ -2,7 +2,7 @@
   "expo": {
     "name": "EGO Gym",
     "slug": "ego-gym",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -23,7 +23,7 @@
         "POST_NOTIFICATIONS",
         "REQUEST_INSTALL_PACKAGES"
       ],
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "favicon": "./assets/favicon.png"
