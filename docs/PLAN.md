@@ -129,6 +129,7 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [x] Guía interactiva para usuarios nuevos (EGO-11): tooltips paso a paso que resaltan cada opción la primera vez que cada usuario abre Inicio, Clientes, Cobrar, Tienda y Más, y que se pueden repetir desde Más
 - [x] Recuperación de PIN (EGO-12): "¿Olvidaste tu PIN?" en el bloqueo con código de recuperación offline (se muestra una sola vez al crear el admin, se regenera en Ajustes) y código de un solo uso al Telegram del admin (6 dígitos, vence en 10 minutos)
 - [x] Actualizaciones desde GitHub (EGO-13): en Ajustes se apunta al repositorio, se consulta el último release con APK, y se descarga e instala desde la app conservando los datos
+- [x] Cobros con confirmación y rol protegido (EGO-14): Registrar pago e Inscribir/Renovar piden confirmar el monto antes de guardar; al editar al único administrador, el rol Recepción y la desactivación aparecen bloqueados
 - [ ] Probar la guía en la tablet en horizontal y vertical
 - [ ] Probar la actualización desde GitHub en la tablet (permiso de apps desconocidas, descarga e instalación)
 
