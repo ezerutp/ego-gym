@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Card, Field } from '@/components/ui';
 import { getSettings } from '@/db/settings';
 import { PinPad } from '@/features/auth/components/PinPad';
+import { PinRecovery } from '@/features/auth/components/PinRecovery';
 import { UserAvatar } from '@/features/auth/components/UserAvatar';
 import { createUser, listUsers, PIN_LENGTH, ROLE_LABELS, verifyPin, type User } from '@/features/auth/db/users';
 import { formatRecoveryCode, generateRecoveryCode, storeRecoveryCode } from '@/features/auth/lib/recovery';
@@ -68,6 +69,7 @@ function UserLogin({ users, gymName }: { users: User[]; gymName: string }) {
   const [error, setError] = useState('');
   const [attempts, setAttempts] = useState(0);
   const [lockedFor, setLockedFor] = useState(0);
+  const [recovering, setRecovering] = useState(false);
 
   useEffect(() => {
     if (lockedFor <= 0) return;
@@ -79,6 +81,7 @@ function UserLogin({ users, gymName }: { users: User[]; gymName: string }) {
     setSelected(user);
     setPin('');
     setError('');
+    setRecovering(false);
   };
 
   const submit = async (value: string) => {
@@ -128,18 +131,25 @@ function UserLogin({ users, gymName }: { users: User[]; gymName: string }) {
 
   const pad = selected && (
     <View style={styles.padArea}>
-      {!wide && users.length > 1 && (
-        <Pressable onPress={() => setSelected(null)} style={styles.back} hitSlop={8}>
-          <Ionicons name="chevron-back" size={20} color={colors.primary} />
-          <Text style={{ color: colors.primary, fontWeight: '600' }}>Cambiar usuario</Text>
-        </Pressable>
+      {recovering ? (
+        <PinRecovery user={selected} onBack={() => setRecovering(false)} />
+      ) : (
+        <>
+          {!wide && users.length > 1 && (
+            <Pressable onPress={() => setSelected(null)} style={styles.back} hitSlop={8}>
+              <Ionicons name="chevron-back" size={20} color={colors.primary} />
+              <Text style={{ color: colors.primary, fontWeight: '600' }}>Cambiar usuario</Text>
+            </Pressable>
+          )}
+          <UserAvatar name={selected.name} role={selected.role} size={64} />
+          <Text style={font.h2}>Hola, {selected.name.split(' ')[0]}</Text>
+          <Text style={[font.small, (error || lockedFor > 0) && { color: colors.danger, fontWeight: '600' }]}>
+            {lockedFor > 0 ? `Demasiados intentos. Espera ${lockedFor} s` : error || `Ingresa tu PIN de ${PIN_LENGTH} dígitos`}
+          </Text>
+          <PinPad value={pin} onChange={(v) => (setPin(v), setError(''))} onComplete={submit} disabled={lockedFor > 0} error={!!error} />
+          <Button title="¿Olvidaste tu PIN?" variant="ghost" onPress={() => setRecovering(true)} />
+        </>
       )}
-      <UserAvatar name={selected.name} role={selected.role} size={64} />
-      <Text style={font.h2}>Hola, {selected.name.split(' ')[0]}</Text>
-      <Text style={[font.small, (error || lockedFor > 0) && { color: colors.danger, fontWeight: '600' }]}>
-        {lockedFor > 0 ? `Demasiados intentos. Espera ${lockedFor} s` : error || `Ingresa tu PIN de ${PIN_LENGTH} dígitos`}
-      </Text>
-      <PinPad value={pin} onChange={(v) => (setPin(v), setError(''))} onComplete={submit} disabled={lockedFor > 0} error={!!error} />
     </View>
   );
 
