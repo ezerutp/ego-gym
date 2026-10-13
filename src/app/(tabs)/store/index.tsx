@@ -7,12 +7,15 @@ import { Card, EmptyState, IconCircle, SectionTitle, type IconName } from '@/com
 import { getTodaySummary, listRecentSales } from '@/features/store/db/sales';
 import { getSettings } from '@/db/settings';
 import { computeAlerts, groupAlerts } from '@/features/store/lib/alerts';
+import { TourTarget } from '@/features/tour/components/TourTarget';
+import { useAutoTour } from '@/features/tour/lib/useAutoTour';
 import { formatDateTime, money, receiptNumber } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
 export default function StoreSummaryScreen() {
   const styles = useStyles();
+  useAutoTour('store');
   const { colors, font } = useTheme();
   const { data } = useFocusQuery(async (db) => {
     const settings = await getSettings(db);
@@ -54,11 +57,11 @@ export default function StoreSummaryScreen() {
           </View>
         </View>
 
-        <View style={styles.actions}>
+        <TourTarget id="store-quick" style={styles.actions}>
           <QuickAction icon="add-circle" label="Ingresar productos" onPress={() => router.push({ pathname: '/scan', params: { mode: 'add' } })} />
           <QuickAction icon="cart" label="Nueva venta" onPress={() => router.push({ pathname: '/scan', params: { mode: 'sell' } })} />
           <QuickAction icon="cube" label="Ver almacén" onPress={() => router.navigate('/store/inventory')} />
-        </View>
+        </TourTarget>
 
         <SectionTitle title="Alertas" action={alertCount ? 'Ver todas' : undefined} onAction={() => router.navigate('/store/alerts')} />
         <View style={styles.alertGrid}>

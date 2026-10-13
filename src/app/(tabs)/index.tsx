@@ -11,6 +11,8 @@ import { countDebts, getTodayPayments } from '@/features/payments/db/payments';
 import { MemberAlertRow } from '@/features/alerts/components/MemberAlertRow';
 import { attentionCount, computeAttention } from '@/features/alerts/lib/attention';
 import { getTodaySummary } from '@/features/store/db/sales';
+import { TourTarget } from '@/features/tour/components/TourTarget';
+import { useAutoTour } from '@/features/tour/lib/useAutoTour';
 import { addDays, money, todayIso } from '@/lib/format';
 import { useIsWide } from '@/lib/layout';
 import { useFocusQuery } from '@/lib/useFocusQuery';
@@ -22,6 +24,7 @@ export default function HomeScreen() {
   const styles = useStyles();
   const { colors, font } = useTheme();
   const wide = useIsWide();
+  useAutoTour('home');
   const { data } = useFocusQuery(async (db) => {
     const settings = await getSettings(db);
     const day = todayIso();
@@ -55,26 +58,28 @@ export default function HomeScreen() {
               {settings.storeName}
             </Text>
           </View>
-          <Pressable onPress={() => router.push('/notifications')} style={styles.bell} hitSlop={8}>
-            <Ionicons name="notifications-outline" size={24} color={colors.ink} />
-            {pending > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{pending > 99 ? '99+' : pending}</Text>
-              </View>
-            )}
-          </Pressable>
+          <TourTarget id="home-bell">
+            <Pressable onPress={() => router.push('/notifications')} style={styles.bell} hitSlop={8}>
+              <Ionicons name="notifications-outline" size={24} color={colors.ink} />
+              {pending > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{pending > 99 ? '99+' : pending}</Text>
+                </View>
+              )}
+            </Pressable>
+          </TourTarget>
         </View>
 
         <SectionTitle title="Accesos rápidos" />
-        <View style={styles.actions}>
+        <TourTarget id="home-quick" style={styles.actions}>
           <QuickAction icon="person-add" label="Nuevo cliente" onPress={() => router.push('/member/form')} />
           <QuickAction icon="card" label="Cobrar membresía" onPress={() => router.push('/charge')} />
           <QuickAction icon="cart" label="Nueva venta" onPress={() => router.push({ pathname: '/scan', params: { mode: 'sell' } })} />
           <QuickAction icon="add-circle" label="Ingresar productos" onPress={() => router.push({ pathname: '/scan', params: { mode: 'add' } })} />
-        </View>
+        </TourTarget>
 
         <SectionTitle title="Hoy" />
-        <View style={styles.grid}>
+        <TourTarget id="home-today" style={styles.grid}>
           <Card style={styles.tile}>
             <IconCircle icon="wallet" color={colors.primary} bg={colors.primarySoft} />
             <Text style={[font.title, { fontSize: 26 }]}>{money(today.total + payments.total)}</Text>
@@ -103,23 +108,25 @@ export default function HomeScreen() {
               Deudas · {debts.members} {debts.members === 1 ? 'cliente' : 'clientes'}
             </Text>
           </Card>
-        </View>
+        </TourTarget>
 
-        <SectionTitle title="Requiere atención" action={pending > 0 ? 'Ver todo' : undefined} onAction={() => router.push('/notifications')} />
-        {highlights.length > 0 ? (
-          <View style={{ gap: spacing.sm }}>
-            {highlights.map(({ m, kind }) => (
-              <MemberAlertRow key={`${kind}-${m.id}`} member={m} kind={kind} settings={settings} />
-            ))}
-          </View>
-        ) : (
-          <Card style={styles.allGood}>
-            <IconCircle icon="checkmark-done" color={colors.primary} bg={colors.primarySoft} />
-            <Text style={[font.body, { flex: 1 }]}>
-              {pending > 0 ? 'Los clientes están al día. Revisa las alertas de la tienda.' : 'Todo al día: sin membresías por vencer ni deudas.'}
-            </Text>
-          </Card>
-        )}
+        <TourTarget id="home-attention">
+          <SectionTitle title="Requiere atención" action={pending > 0 ? 'Ver todo' : undefined} onAction={() => router.push('/notifications')} />
+          {highlights.length > 0 ? (
+            <View style={{ gap: spacing.sm }}>
+              {highlights.map(({ m, kind }) => (
+                <MemberAlertRow key={`${kind}-${m.id}`} member={m} kind={kind} settings={settings} />
+              ))}
+            </View>
+          ) : (
+            <Card style={styles.allGood}>
+              <IconCircle icon="checkmark-done" color={colors.primary} bg={colors.primarySoft} />
+              <Text style={[font.body, { flex: 1 }]}>
+                {pending > 0 ? 'Los clientes están al día. Revisa las alertas de la tienda.' : 'Todo al día: sin membresías por vencer ni deudas.'}
+              </Text>
+            </Card>
+          )}
+        </TourTarget>
       </ScrollView>
     </SafeAreaView>
   );

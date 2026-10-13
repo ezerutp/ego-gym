@@ -11,6 +11,8 @@ import { countMembersByStatus, listMembers, type MemberFilter, type MemberStatus
 import { getSettings } from '@/db/settings';
 import { countMembershipAlerts } from '@/features/memberships/db/subscriptions';
 import { countDebts } from '@/features/payments/db/payments';
+import { TourTarget } from '@/features/tour/components/TourTarget';
+import { useAutoTour } from '@/features/tour/lib/useAutoTour';
 import { addDays, todayIso } from '@/lib/format';
 import { useIsWide } from '@/lib/layout';
 import { useFocusQuery } from '@/lib/useFocusQuery';
@@ -39,6 +41,7 @@ export default function MembersScreen() {
   const styles = useStyles();
   const { colors, font } = useTheme();
   const wide = useIsWide();
+  useAutoTour('members');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterKey>('all');
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -68,16 +71,16 @@ export default function MembersScreen() {
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <Text style={font.title}>Clientes</Text>
-          <Text style={font.small}>
-            {data ? `${data.counts.active} activos · ${data.counts.prospect} prospectos` : ' '}
-          </Text>
+          <Text style={font.small}>{data ? `${data.counts.active} activos · ${data.counts.prospect} prospectos` : ' '}</Text>
         </View>
-        <Pressable style={styles.addBtn} onPress={openNew}>
-          <Ionicons name="person-add" size={22} color={colors.white} />
-        </Pressable>
+        <TourTarget id="members-add">
+          <Pressable style={styles.addBtn} onPress={openNew}>
+            <Ionicons name="person-add" size={22} color={colors.white} />
+          </Pressable>
+        </TourTarget>
       </View>
 
-      <View style={styles.search}>
+      <TourTarget id="members-search" style={styles.search}>
         <Ionicons name="search" size={20} color={colors.faint} />
         <TextInput
           value={search}
@@ -91,21 +94,23 @@ export default function MembersScreen() {
             <Ionicons name="close-circle" size={20} color={colors.faint} />
           </Pressable>
         )}
-      </View>
+      </TourTarget>
 
       <View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
-          {FILTERS.map((f) => {
-            const active = filter === f.key;
-            return (
-              <Pressable key={f.key} onPress={() => setFilter(f.key)} style={[styles.filter, active && styles.filterActive]}>
-                <Text style={[styles.filterText, active && { color: colors.white }]}>
-                  {f.label} · {countFor(f.key)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        <TourTarget id="members-filters">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
+            {FILTERS.map((f) => {
+              const active = filter === f.key;
+              return (
+                <Pressable key={f.key} onPress={() => setFilter(f.key)} style={[styles.filter, active && styles.filterActive]}>
+                  <Text style={[styles.filterText, active && { color: colors.white }]}>
+                    {f.label} · {countFor(f.key)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </TourTarget>
       </View>
 
       <FlatList
