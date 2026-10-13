@@ -8,7 +8,7 @@ import { Button, Card, Chip, EmptyState, Field, SectionTitle } from '@/component
 import { getSettings } from '@/db/settings';
 import { session } from '@/features/auth/lib/session';
 import { PaymentMethodPicker } from '@/features/payments/components/PaymentMethodPicker';
-import type { PaymentMethod } from '@/features/payments/db/payments';
+import { PAYMENT_METHODS, type PaymentMethod } from '@/features/payments/db/payments';
 import { MemberAvatar } from '@/features/members/components/MemberBits';
 import { fullName, getMember } from '@/features/members/db/members';
 import { listCoaches } from '@/features/memberships/db/coaches';
@@ -77,7 +77,7 @@ function EnrollForm({ member, plans, coaches, latest, settings }: EnrollData) {
     if (plan) setEnd(endDateFor(value, plan.duration_days));
   };
 
-  const save = async () => {
+  const save = () => {
     const amount = parseMoney(price);
     const personalAmount = parseMoney(personalPrice);
     if (!plan || !end) return Alert.alert('Elige un plan', 'Selecciona el plan en el que se inscribe el cliente.');
@@ -86,32 +86,39 @@ function EnrollForm({ member, plans, coaches, latest, settings }: EnrollData) {
     if (withPersonal && !coachId) return Alert.alert('Elige un coach', 'Selecciona el coach del personalizado.');
     if (withPersonal && (personalAmount == null || personalAmount <= 0)) return Alert.alert('Falta el precio', 'Escribe el precio del personalizado.');
     if (paid > total) return Alert.alert('Monto mayor al total', `El pago no puede ser mayor a ${money(total)}.`);
-
-    setSaving(true);
-    try {
-      const { paymentId } = await createSubscription(
-        db,
-        {
-          memberId: member.id,
-          planId: plan.id,
-          planName: plan.name,
-          startDate: start,
-          endDate: end,
-          price: amount,
-          notes,
-          personal: withPersonal && coachId ? { coachId, price: personalAmount! } : null,
-          payment: paid > 0 ? { amount: paid, method } : null,
-        },
-        session.get()?.id ?? null,
-      );
-      rescheduleAlerts(db).catch(() => {});
-      if (paymentId) router.replace({ pathname: '/payment/[id]', params: { id: paymentId, fresh: '1' } });
-      else router.back();
-    } catch (e) {
-      Alert.alert('No se pudo guardar', String(e));
-    } finally {
-      setSaving(false);
-    }
+    const commit = async () => {
+      setSaving(true);
+      try {
+        const { paymentId } = await createSubscription(
+          db,
+          {
+            memberId: member.id,
+            planId: plan.id,
+            planName: plan.name,
+            startDate: start,
+            endDate: end,
+            price: amount,
+            notes,
+            personal: withPersonal && coachId ? { coachId, price: personalAmount! } : null,
+            payment: paid > 0 ? { amount: paid, method } : null,
+          },
+          session.get()?.id ?? null,
+        );
+        rescheduleAlerts(db).catch(() => {});
+        if (paymentId) router.replace({ pathname: '/payment/[id]', params: { id: paymentId, fresh: '1' } });
+        else router.back();
+      } catch (e) {
+        Alert.alert('No se pudo guardar', String(e));
+      } finally {
+        setSaving(false);
+      }
+    };
+    if (paid <= 0) return commit();
+    Alert.alert(
+      'Confirmar cobro',
+      `${latest ? 'Renovar' : 'Inscribir'} a ${fullName(member)}: ${plan.name} del ${formatDay(start)} al ${formatDay(end)} por ${money(total)}, cobrando ${money(paid)} en ${PAYMENT_METHODS[method]}${pending > 0 ? ` (quedará una deuda de ${money(pending)})` : ''}?`,
+      [{ text: 'Cancelar', style: 'cancel' }, { text: `Cobrar ${money(paid)}`, onPress: commit }],
+    );
   };
 
   const planPicker = (

@@ -9,7 +9,7 @@ import { MemberAvatar } from '@/features/members/components/MemberBits';
 import { fullName, getMember } from '@/features/members/db/members';
 import { getSubscription } from '@/features/memberships/db/subscriptions';
 import { PaymentMethodPicker } from '@/features/payments/components/PaymentMethodPicker';
-import { insertPayment, type PaymentMethod } from '@/features/payments/db/payments';
+import { insertPayment, PAYMENT_METHODS, type PaymentMethod } from '@/features/payments/db/payments';
 import { formatDay, money, parseMoney } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, spacing, useTheme } from '@/theme';
@@ -41,9 +41,16 @@ function PayForm({ subscription: sub, member }: PayData) {
   const [saving, setSaving] = useState(false);
   const value = parseMoney(amount) ?? 0;
 
-  const save = async () => {
+  const save = () => {
     if (value <= 0) return Alert.alert('Falta el monto', 'Escribe cuánto está pagando el cliente.');
     if (value > due) return Alert.alert('Monto mayor a la deuda', `La deuda de esta membresía es ${money(due)}.`);
+    Alert.alert('Confirmar cobro', `Cobrar ${money(value)} a ${fullName(member)} en ${PAYMENT_METHODS[method]}${value < due ? ` (quedará una deuda de ${money(due - value)})` : ''}?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: `Cobrar ${money(value)}`, onPress: confirmed },
+    ]);
+  };
+
+  const confirmed = async () => {
     setSaving(true);
     try {
       const paymentId = await insertPayment(
