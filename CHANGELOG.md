@@ -10,6 +10,11 @@ Cambios visibles de la app por etapa. Durante una fase, los cambios se acumulan 
 - Actualizaciones: en Ajustes se apunta al repositorio de GitHub para ver el último release con APK, descargarlo e instalarlo sin perder los datos.
 - Cobros con confirmación: Registrar pago e Inscribir/Renovar muestran el monto, el método y la deuda restante para confirmar antes de guardar.
 - Reporte general con gráficos: el PDF del resumen incluye variación vs el periodo anterior, ingreso diario en barras, tendencia acumulada, histograma de montos y cobros por método.
+- El repositorio de actualizaciones se configura en un diálogo aparte con solo Editar y Buscar actualización.
+
+### Corregido
+
+- Instalar el APK descargado desde la app ya no falla por el import deprecado de expo-file-system.
 - Guía interactiva: la primera vez que cada usuario abre Inicio, Clientes, Cobrar, Tienda y Más, aparecen globos que resaltan cada opción y explican para qué sirve, paso a paso, con botones Atrás, Siguiente y Saltar. Los pasos de configuración solo se muestran al administrador.
 - "Ver la guía otra vez" en Más.
 

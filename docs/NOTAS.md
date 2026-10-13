@@ -2,6 +2,11 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-13 — Ajustes y actualizaciones
+
+- **El import root de `getContentUriAsync` ya no solo avisa: lanza error.** El mensaje pide migrar al API nuevo o importar de `expo-file-system/legacy`; como `File` no expone esa función, se importa del legacy y el instalador vuelve a abrir.
+- **El repositorio sale del formulario largo.** Dueño y repo viven en un diálogo propio que guarda directo en ajustes; al guardar se recarga el formulario para no pisar valores con datos viejos.
+
 ## 2026-10-13 — Reporte general con gráficos
 
 - **Gráficos en SVG puro, sin dependencias.** El PDF se genera con `expo-print` (un WebView), así que el SVG inline funciona sin librerías ni internet: barras apiladas día a día, línea de acumulado, histograma en 5 rangos fijos y dona por método.
