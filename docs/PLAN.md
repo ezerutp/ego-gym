@@ -124,6 +124,11 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [ ] Pruebas completas del APK en la tablet: vertical, horizontal, claro, oscuro, notificaciones, segundo plano y Telegram
 - [ ] Firma propia para publicar (hoy el APK de release se firma con la clave de depuración)
 
+### Después de la 1.0
+
+- [x] Guía interactiva para usuarios nuevos (EGO-11): tooltips paso a paso que resaltan cada opción la primera vez que cada usuario abre Inicio, Clientes, Cobrar, Tienda y Más, y que se pueden repetir desde Más
+- [ ] Probar la guía en la tablet en horizontal y vertical
+
 ### Futuro
 
 - Servidor y sincronización (Supabase): varios dispositivos y respaldo en la nube

@@ -2,6 +2,14 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-12 — Guía interactiva
+
+- **Sin librerías.** La guía es propia (`src/features/tour/`), para no sumar dependencias nativas. Los elementos se marcan con `<TourTarget id="…">`, que registra una vista (con `collapsable={false}` para que exista en Android y se pueda medir). La capa `TourOverlay` está en el layout raíz, entre el `Stack` y el bloqueo, y mide el elemento con `measureInWindow`.
+- **Resaltado con cuatro paneles.** El "hueco" alrededor del elemento se arma con cuatro rectángulos oscuros (arriba, abajo, izquierda y derecha) y un borde blanco, sin `react-native-svg`. Una vista transparente encima del elemento bloquea los toques, para que la guía no quede a medias.
+- **Pasos que no aplican se saltan solos.** Si un elemento no está en pantalla (el botón "Bloquear" solo existe en la barra lateral de tablet) o el paso es de admin y entra recepción, se pasa al siguiente. Los pasos se definen en `tours.ts`, con `role` opcional.
+- **Una vez por usuario.** La tablet es compartida, así que lo visto se guarda en `settings.toursSeen` por id de usuario. "Ver la guía otra vez" en Más limpia esa lista y vuelve a Inicio, donde la guía arranca sola.
+- **Espera antes de medir.** `useAutoTour` espera 700 ms después de que la pantalla toma el foco, para que el diseño y la navegación terminen de acomodarse antes de medir. Si ya hay una guía activa, no se inicia otra. Al girar la tablet, se vuelve a medir.
+
 ## 2026-10-12 — Fase 8
 
 - **Marca.** El ícono adaptable usa un degradado verde de fondo y una pesa con "EGO" en blanco dentro de la zona segura (66 % central). El monocromo sirve para los íconos temáticos de Android 13+. El splash agrega "GYM" sobre el verde `#0B7A5C`. Todo se genera con `python3 scripts/make-brand.py assets vista.png` (Pillow y la fuente Montserrat); el segundo argumento crea una hoja de vista previa para aprobar los cambios antes de reemplazar los recursos.
