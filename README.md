@@ -15,6 +15,7 @@ App Android (React Native + Expo) para gestionar un gimnasio desde una tablet en
 - **Reportes**: resumen general, ventas, cobros y clientes por periodo, en PDF o texto para compartir. El administrador puede programarlos (diario, semanal o mensual): se generan solos al abrir la app o en segundo plano, y avisan con una notificación.
 - **Integraciones**: Telegram, conectado con un bot propio, recibe solos los reportes programados y el resumen diario, y se usa en el botón "Enviar al admin" de boletas y reportes. Los mensajes de WhatsApp para clientes son plantillas editables, y los reportes también se pueden mandar al celular del admin por WhatsApp.
 - **Respaldo**: exportar y restaurar la base de datos desde Ajustes.
+- **Guía interactiva**: la primera vez que cada usuario abre las pantallas principales, una guía paso a paso resalta y explica cada opción. Se puede repetir desde Más.
 - **Todo es local**: SQLite en el dispositivo, sin servidor.
 
 ## Estructura
@@ -46,6 +47,7 @@ src/
     payments/          Pagos, deudas y boletas de membresía
     reports/           Datos, PDF, programación y tarea en segundo plano de los reportes
     store/             Base de datos, lógica y componentes de la tienda
+    tour/              Guía interactiva: pasos, resaltado y avance por usuario
   db/                  Esquema SQLite y ajustes
   lib/                 Formatos, consultas al enfocar, diseño responsive y notificaciones
   components/          UI reutilizable (incluye el papel de las boletas)
