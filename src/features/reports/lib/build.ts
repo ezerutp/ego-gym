@@ -17,6 +17,15 @@ export const REPORT_KINDS: Record<ReportKind, { label: string; hint: string }> =
 
 export type ReportTable = { title: string; columns: string[]; rows: string[][]; empty: string };
 
+/** Raw series behind the summary charts; only the summary report sets it. */
+export type SummarySeries = {
+  daily: { day: string; store: number; subs: number }[];
+  /** Percent change vs the previous period, null when there is nothing to compare. */
+  deltas: { income: number | null; sales: number | null; payments: number | null; members: number | null };
+  amounts: number[];
+  byMethod: { method: PaymentMethod; total: number }[];
+};
+
 export type ReportData = {
   kind: ReportKind;
   title: string;
@@ -25,6 +34,7 @@ export type ReportData = {
   periodEnd: string;
   highlights: { label: string; value: string }[];
   tables: ReportTable[];
+  series?: SummarySeries;
 };
 
 const IN_PERIOD = `date(created_at, 'localtime') BETWEEN ? AND ?`;
@@ -154,18 +164,30 @@ async function buildMembers(db: SQLiteDatabase, start: string, end: string): Pro
   };
 }
 
-async function buildSummary(db: SQLiteDatabase, start: string, end: string): Promise<Pick<ReportData, 'highlights' | 'tables'>> {
+async function buildSummary(db: SQLiteDatabase, start: string, end: string): Promise<Pick<ReportData, 'highlights' | 'tables' | 'series'>> {
   const settings = await getSettings(db);
-  const [sales, payments, joined, attention, debts] = await Promise.all([
+  const days = Math.max(Math.round((new Date(`${end}T12:00:00Z`).getTime() - new Date(`${start}T12:00:00Z`).getTime()) / 86_400_000) + 1, 1);
+  const prevEnd = shiftDay(start, -1);
+  const prevStart = shiftDay(start, -days);
+  const [sales, payments, joined, attention, debts, daily, prevSales, prevPayments, prevNew, payAmounts, saleAmounts, byMethod] = await Promise.all([
     salesTotals(db, start, end),
     paymentTotals(db, start, end),
     newMembers(db, start, end),
     computeAttention(db, settings),
     countDebts(db),
+    dailyIncome(db, start, end),
+    salesTotals(db, prevStart, prevEnd),
+    paymentTotals(db, prevStart, prevEnd),
+    db.getFirstAsync<{ n: number }>(`SELECT COUNT(*) AS n FROM members WHERE ${IN_PERIOD}`, prevStart, prevEnd),
+    db.getAllAsync<{ v: number }>(`SELECT amount AS v FROM payments WHERE ${IN_PERIOD}`, start, end),
+    db.getAllAsync<{ v: number }>(`SELECT total AS v FROM sales WHERE ${IN_PERIOD}`, start, end),
+    db.getAllAsync<{ method: PaymentMethod; total: number }>(`SELECT method, SUM(amount) AS total FROM payments WHERE ${IN_PERIOD} GROUP BY method`, start, end),
   ]);
+  const income = sales.total + payments.total;
+  const prevIncome = prevSales.total + prevPayments.total;
   return {
     highlights: [
-      { label: 'Ingresos totales', value: money(sales.total + payments.total) },
+      { label: 'Ingresos totales', value: money(income) },
       { label: 'Membresías cobradas', value: `${money(payments.total)} (${payments.count})` },
       { label: 'Ventas de la tienda', value: `${money(sales.total)} (${sales.count})` },
       { label: 'Clientes registrados', value: String(joined.length) },
@@ -186,7 +208,44 @@ async function buildSummary(db: SQLiteDatabase, start: string, end: string): Pro
         empty: 'Nadie tiene deuda.',
       },
     ],
+    series: {
+      daily,
+      deltas: {
+        income: pct(income, prevIncome),
+        sales: pct(sales.total, prevSales.total),
+        payments: pct(payments.total, prevPayments.total),
+        members: pct(joined.length, prevNew?.n ?? 0),
+      },
+      amounts: [...payAmounts, ...saleAmounts].map((r) => r.v),
+      byMethod,
+    },
   };
+}
+
+function shiftDay(iso: string, delta: number) {
+  const d = new Date(`${iso}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + delta);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Percent change vs the previous period, null when there is nothing to compare. */
+function pct(current: number, previous: number) {
+  if (previous <= 0) return null;
+  return Math.round(((current - previous) / previous) * 1000) / 10;
+}
+
+async function dailyIncome(db: SQLiteDatabase, start: string, end: string) {
+  return db.getAllAsync<{ day: string; store: number; subs: number }>(
+    `SELECT day, SUM(store) AS store, SUM(subs) AS subs FROM (
+       SELECT date(created_at, 'localtime') AS day, total AS store, 0 AS subs FROM sales WHERE ${IN_PERIOD}
+       UNION ALL
+       SELECT date(created_at, 'localtime') AS day, 0 AS store, amount AS subs FROM payments WHERE ${IN_PERIOD}
+     ) GROUP BY day ORDER BY day`,
+    start,
+    end,
+    start,
+    end,
+  );
 }
 
 const BUILDERS = { summary: buildSummary, sales: buildSales, payments: buildPayments, members: buildMembers };
