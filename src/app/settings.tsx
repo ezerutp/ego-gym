@@ -239,7 +239,7 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
             <Text style={font.small}>
               Apunta al repositorio, busca el último release con APK y descárgalo e instálalo desde aquí. Cada release debe subir el `versionCode` para que Android lo acepte como actualización.
             </Text>
-            <UpdatesSection owner={form.updateOwner} repo={form.updateRepo} onOwner={(v) => set('updateOwner', v)} onRepo={(v) => set('updateRepo', v)} />
+            <UpdatesSection onChanged={onSaved} />
           </Section>
 
           <Section icon="server" title="Datos locales" subtitle="Guardados en este dispositivo">
