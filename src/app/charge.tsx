@@ -9,6 +9,8 @@ import { getSettings } from '@/db/settings';
 import { MemberRow } from '@/features/members/components/MemberBits';
 import { listMembers, type MemberListItem } from '@/features/members/db/members';
 import { getOldestDueSubscription } from '@/features/payments/db/payments';
+import { TourTarget } from '@/features/tour/components/TourTarget';
+import { useAutoTour } from '@/features/tour/lib/useAutoTour';
 import { todayIso } from '@/lib/format';
 import { useFocusQuery } from '@/lib/useFocusQuery';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
@@ -25,6 +27,7 @@ export default function ChargeScreen() {
   const { colors, font } = useTheme();
   const db = useSQLiteContext();
   const [search, setSearch] = useState('');
+  useAutoTour('charge');
   const { data } = useFocusQuery(
     async (db) => {
       const [members, settings] = await Promise.all([listMembers(db, { search }), getSettings(db)]);
@@ -53,21 +56,23 @@ export default function ChargeScreen() {
         contentContainerStyle={styles.content}
         ListHeaderComponent={
           <View style={{ gap: spacing.md }}>
-            <Pressable
-              onPress={() => router.replace({ pathname: '/scan', params: { mode: 'sell' } })}
-              style={({ pressed }) => [styles.option, pressed && { opacity: 0.8 }]}
-            >
-              <IconCircle icon="cart" color={colors.white} bg={colors.primary} size={52} />
-              <View style={{ flex: 1 }}>
-                <Text style={font.h2}>Venta de la tienda</Text>
-                <Text style={font.small}>Escanea los productos y genera la boleta</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={22} color={colors.faint} />
-            </Pressable>
+            <TourTarget id="charge-store">
+              <Pressable
+                onPress={() => router.replace({ pathname: '/scan', params: { mode: 'sell' } })}
+                style={({ pressed }) => [styles.option, pressed && { opacity: 0.8 }]}
+              >
+                <IconCircle icon="cart" color={colors.white} bg={colors.primary} size={52} />
+                <View style={{ flex: 1 }}>
+                  <Text style={font.h2}>Venta de la tienda</Text>
+                  <Text style={font.small}>Escanea los productos y genera la boleta</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={22} color={colors.faint} />
+              </Pressable>
+            </TourTarget>
 
             <SectionTitle title="Membresía: elige al cliente" />
             <Text style={font.small}>Si tiene deuda, se registra un abono; si no, se renueva o inscribe en un plan.</Text>
-            <View style={styles.search}>
+            <TourTarget id="charge-members" style={styles.search}>
               <Ionicons name="search" size={20} color={colors.faint} />
               <TextInput
                 value={search}
@@ -76,7 +81,7 @@ export default function ChargeScreen() {
                 placeholderTextColor={colors.faint}
                 style={styles.searchInput}
               />
-            </View>
+            </TourTarget>
           </View>
         }
         renderItem={({ item }) => <MemberRow member={item} warningDays={data?.warningDays} onPress={() => chargeMember(item)} />}

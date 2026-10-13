@@ -124,6 +124,14 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [ ] Pruebas completas del APK en la tablet: vertical, horizontal, claro, oscuro, notificaciones, segundo plano y Telegram
 - [ ] Firma propia para publicar (hoy el APK de release se firma con la clave de depuración)
 
+### Después de la 1.0
+
+- [x] Guía interactiva para usuarios nuevos (EGO-11): tooltips paso a paso que resaltan cada opción la primera vez que cada usuario abre Inicio, Clientes, Cobrar, Tienda y Más, y que se pueden repetir desde Más
+- [x] Recuperación de PIN (EGO-12): "¿Olvidaste tu PIN?" en el bloqueo con código de recuperación offline (se muestra una sola vez al crear el admin, se regenera en Ajustes) y código de un solo uso al Telegram del admin (6 dígitos, vence en 10 minutos)
+- [x] Actualizaciones desde GitHub (EGO-13): en Ajustes se apunta al repositorio, se consulta el último release con APK, y se descarga e instala desde la app conservando los datos
+- [ ] Probar la guía en la tablet en horizontal y vertical
+- [ ] Probar la actualización desde GitHub en la tablet (permiso de apps desconocidas, descarga e instalación)
+
 ### Futuro
 
 - Servidor y sincronización (Supabase): varios dispositivos y respaldo en la nube

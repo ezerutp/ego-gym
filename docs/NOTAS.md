@@ -2,6 +2,32 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-13 — Actualizaciones desde GitHub
+
+- **Sin Play Store ni EAS Update.** El APK se publica como asset de un release de GitHub y la app lo instala con el instalador del sistema (`expo-intent-launcher`, acción VIEW sobre el `content://` de `getContentUriAsync`). EAS Update no sirve: necesita su servidor y solo actualiza JS, no cambios nativos.
+- **La BD sobrevive a la actualización.** Android conserva el almacenamiento privado al actualizar (mismo paquete y misma firma), y `migrateDb` sube el esquema sin borrar datos. Condiciones: firmar siempre con la misma clave (la actual es la de depuración) y subir el `versionCode` en cada release; desinstalar sí borra todo, por eso la pantalla recomienda el respaldo.
+- **El permiso se concede una sola vez.** `REQUEST_INSTALL_PACKAGES` va en el manifiesto y Android pide permitir "instalar apps desconocidas" para EGO Gym; la pantalla abre ese ajuste directo (`MANAGE_UNKNOWN_APP_SOURCES` del propio paquete).
+- **La API pública de GitHub alcanza.** `releases/latest` sin login permite 60 consultas por hora, suficiente para revisar al abrir Ajustes. Se elige el primer asset `.apk` del release y se compara el tag con `expoConfig.version`.
+
+## 2026-10-13 — Recuperación de PIN
+
+- **Dos vías, una siempre offline.** El código de recuperación (8 caracteres, formato XXXX-XXXX) vive como hash + sal en `settings`, así que no requiere migración y funciona sin internet. El código de Telegram (6 dígitos, tabla `pin_resets` en la migración v8) es de un solo uso, vence en 10 minutos y se agota en 3 intentos fallidos.
+- **Telegram solo envía.** La tablet genera el código localmente y lo manda con el `sendText` existente al chat del admin; no se necesita leer mensajes del bot (`getUpdates`), lo que evita polling y webhooks. Si Telegram no está configurado, el error lo dice y ofrece la vía offline.
+- **El código de recuperación se muestra una sola vez.** Al crear el admin inicial, la sesión se abre recién después de anotarlo; si la app se cierra antes, el admin ya existe y el código quedó guardado. Solo se guarda el hash: en Ajustes no se puede ver, solo generar uno nuevo (el anterior deja de funcionar).
+- **Correo y WhatsApp descartados.** Sin backend no hay envío automático de correos, y WhatsApp exige que el usuario toque enviar (`wa.me`/compartir), así que no sirve para un desbloqueo.
+
+## 2026-10-12 — Guía interactiva
+
+- **Sin librerías.** La guía es propia (`src/features/tour/`), para no sumar dependencias nativas. Los elementos se marcan con `<TourTarget id="…">`, que registra una vista (con `collapsable={false}` para que exista en Android y se pueda medir). La capa `TourOverlay` está en el layout raíz, entre el `Stack` y el bloqueo, y mide el elemento con `measureInWindow`.
+- **Resaltado con esquinas redondeadas y sin SVG.** La primera versión armaba el hueco con cuatro rectángulos y se veía tosca: esquinas rectas, borde blanco invisible sobre fondos claros, saltos secos entre pasos. Ahora la sombra es una sola vista con un borde enorme (3000 px) del color de la capa oscura; el borde interior de esa vista es el hueco, y su `borderRadius` (radio + 3000) lo redondea. Los botones redondos (como Cobrar) reciben un hueco circular. La misma vista bloquea los toques, para que la guía no quede a medias.
+- **Animaciones suaves.** La capa entra y sale con fundido; entre pasos, el hueco se desliza y cambia de tamaño (320 ms, `Easing.out(cubic)`, con el driver de JS porque se animan posición y tamaño). El globo aparece con fundido y un pequeño desplazamiento (driver nativo), tiene una flecha que apunta al elemento y puntos de progreso. El borde del hueco es verde (`primary`), para que se vea sobre fondos claros.
+- **Pasos que no aplican se saltan solos.** Si un elemento no está en pantalla (el botón "Bloquear" solo existe en la barra lateral de tablet) o el paso es de admin y entra recepción, se pasa al siguiente. Los pasos se definen en `tours.ts`, con `role` opcional.
+- **Medir respecto de la capa, no de la ventana.** En el teléfono, todos los resaltados quedaban unos 35 dp más arriba: `measureInWindow` no tomaba el mismo origen que la capa de la guía (por la barra de estado en modo edge-to-edge). La capa tiene ahora un "ancla" invisible que la cubre; se miden el elemento y el ancla con `measureInWindow` y se restan, así cualquier desfase se cancela. El tamaño disponible también sale del ancla (`onLayout`) y no de `useWindowDimensions`.
+- **Elementos más altos que la pantalla.** Si el globo no cabe ni arriba ni abajo, se resalta solo la parte de arriba del elemento y el globo va justo debajo. El scroll además considera un margen de 90 dp en los bordes, para que lo que queda bajo la barra de pestañas cuente como fuera de la vista.
+- **Una vez por usuario.** La tablet es compartida, así que lo visto se guarda en `settings.toursSeen` por id de usuario. "Ver la guía otra vez" en Más limpia esa lista y vuelve a Inicio, donde la guía arranca sola.
+- **Scroll hasta el elemento.** Las pantallas con scroll usan `TourScrollView`, que le pasa a la guía (por contexto) una forma de desplazarse. Antes de cada paso, si el elemento está fuera de la pantalla, o si no queda espacio para el globo ni arriba ni abajo, la guía hace scroll para dejarlo al 20 % de la altura, espera 400 ms a que termine la animación y vuelve a medir. Sin esto, en pantallas largas el resaltado y el globo quedaban fuera de la vista.
+- **Espera antes de medir.** `useAutoTour` espera 700 ms después de que la pantalla toma el foco, para que el diseño y la navegación terminen de acomodarse antes de medir. Si ya hay una guía activa, no se inicia otra. Al girar la tablet, se vuelve a medir.
+
 ## 2026-10-12 — Fase 8
 
 - **Marca.** El ícono adaptable usa un degradado verde de fondo y una pesa con "EGO" en blanco dentro de la zona segura (66 % central). El monocromo sirve para los íconos temáticos de Android 13+. El splash agrega "GYM" sobre el verde `#0B7A5C`. Todo se genera con `python3 scripts/make-brand.py assets vista.png` (Pillow y la fuente Montserrat); el segundo argumento crea una hoja de vista previa para aprobar los cambios antes de reemplazar los recursos.

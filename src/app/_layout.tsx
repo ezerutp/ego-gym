@@ -9,6 +9,7 @@ import { getSettings } from '@/db/settings';
 import { LockScreen } from '@/features/auth/components/LockScreen';
 import { session, useSession } from '@/features/auth/lib/session';
 import { runDueDeliveries } from '@/features/integrations/lib/deliver';
+import { TourOverlay } from '@/features/tour/components/TourOverlay';
 import { registerReportsTask } from '@/features/reports/lib/background';
 import { runDueReports } from '@/features/reports/lib/runner';
 import { onNotificationTap, rescheduleAlerts, setupNotifications } from '@/lib/notifications';
@@ -65,6 +66,7 @@ export default function RootLayout() {
             <Stack.Screen name="users/index" options={{ title: 'Usuarios' }} />
             <Stack.Screen name="users/[id]" options={{ title: 'Usuario' }} />
           </Stack>
+          <TourOverlay />
           <LockGate />
         </View>
       </SQLiteProvider>
