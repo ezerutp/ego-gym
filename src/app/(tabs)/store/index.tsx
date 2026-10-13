@@ -1,12 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card, EmptyState, IconCircle, SectionTitle, type IconName } from '@/components/ui';
 import { getTodaySummary, listRecentSales } from '@/features/store/db/sales';
 import { getSettings } from '@/db/settings';
 import { computeAlerts, groupAlerts } from '@/features/store/lib/alerts';
+import { TourScrollView } from '@/features/tour/components/TourScrollView';
 import { TourTarget } from '@/features/tour/components/TourTarget';
 import { useAutoTour } from '@/features/tour/lib/useAutoTour';
 import { formatDateTime, money, receiptNumber } from '@/lib/format';
@@ -33,7 +34,7 @@ export default function StoreSummaryScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <TourScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Text style={font.title}>Tienda</Text>
@@ -106,7 +107,7 @@ export default function StoreSummaryScreen() {
             ))}
           </Card>
         )}
-      </ScrollView>
+      </TourScrollView>
     </SafeAreaView>
   );
 }

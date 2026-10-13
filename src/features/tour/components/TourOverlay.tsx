@@ -4,7 +4,7 @@ import { Animated, StyleSheet, Text, useWindowDimensions, View } from 'react-nat
 
 import { Button, Pill } from '@/components/ui';
 import { session, useSession } from '@/features/auth/lib/session';
-import { markTourSeen, measureTarget, tour, useActiveTour, type ActiveTour, type Rect } from '@/features/tour/lib/tour';
+import { markTourSeen, measureTarget, targetScroller, tour, useActiveTour, type ActiveTour, type Rect } from '@/features/tour/lib/tour';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
 const PAD = 8;
@@ -13,6 +13,25 @@ const MARGIN = 16;
 const CARD_MAX = 400;
 /** Below this much free space under the target, the card goes above it. */
 const MIN_SPACE_BELOW = 240;
+/** Where a scrolled-in target ends up, as a fraction of the screen height from the top. */
+const TARGET_TOP = 0.2;
+const SCROLL_SETTLE_MS = 400;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Measures a target; if it is off screen or leaves no room for the card, scrolls it up first and measures again. */
+async function locate(id: string, height: number) {
+  const r = await measureTarget(id);
+  const scroller = targetScroller(id);
+  if (!r || !scroller) return r;
+  const offscreen = r.y < 0 || r.y + r.height > height;
+  const fitsBelow = height - (r.y + r.height + PAD) >= MIN_SPACE_BELOW;
+  const fitsAbove = r.y - PAD >= MIN_SPACE_BELOW;
+  if (!offscreen && (fitsBelow || fitsAbove)) return r;
+  scroller.scrollBy(r.y - height * TARGET_TOP);
+  await sleep(SCROLL_SETTLE_MS);
+  return measureTarget(id);
+}
 
 /** Dims the screen around the current step's target and explains it in a card. */
 export function TourOverlay() {
@@ -42,7 +61,7 @@ export function TourOverlay() {
     if (!active) return;
     let cancelled = false;
     opacity.setValue(0);
-    measureTarget(active.steps[active.index].target).then((r) => {
+    locate(active.steps[active.index].target, height).then((r) => {
       if (cancelled) return;
       if (!r) {
         // The target is not on screen for this layout or role: move on.
@@ -55,7 +74,7 @@ export function TourOverlay() {
     return () => {
       cancelled = true;
     };
-  }, [active, key, opacity, finish]);
+  }, [active, key, height, opacity, finish]);
 
   if (!active || !rect) return null;
   return <TourStepView active={active} rect={rect} width={width} height={height} opacity={opacity} onFinish={finish} />;

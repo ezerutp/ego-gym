@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card, IconCircle, SectionTitle, type IconName } from '@/components/ui';
@@ -11,6 +11,7 @@ import { countDebts, getTodayPayments } from '@/features/payments/db/payments';
 import { MemberAlertRow } from '@/features/alerts/components/MemberAlertRow';
 import { attentionCount, computeAttention } from '@/features/alerts/lib/attention';
 import { getTodaySummary } from '@/features/store/db/sales';
+import { TourScrollView } from '@/features/tour/components/TourScrollView';
 import { TourTarget } from '@/features/tour/components/TourTarget';
 import { useAutoTour } from '@/features/tour/lib/useAutoTour';
 import { addDays, money, todayIso } from '@/lib/format';
@@ -50,7 +51,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={[styles.content, wide && styles.contentWide]} showsVerticalScrollIndicator={false}>
+      <TourScrollView contentContainerStyle={[styles.content, wide && styles.contentWide]} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Text style={font.small}>{greeting()}</Text>
@@ -127,7 +128,7 @@ export default function HomeScreen() {
             </Card>
           )}
         </TourTarget>
-      </ScrollView>
+      </TourScrollView>
     </SafeAreaView>
   );
 }

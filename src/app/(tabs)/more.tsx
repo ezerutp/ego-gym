@@ -1,13 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, type Href } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Card, IconCircle, Pill, type IconName } from '@/components/ui';
 import { UserAvatar } from '@/features/auth/components/UserAvatar';
 import { ROLE_LABELS } from '@/features/auth/db/users';
 import { can, session, useSession, type Permission } from '@/features/auth/lib/session';
+import { TourScrollView } from '@/features/tour/components/TourScrollView';
 import { TourTarget } from '@/features/tour/components/TourTarget';
 import { resetTours } from '@/features/tour/lib/tour';
 import { useAutoTour } from '@/features/tour/lib/useAutoTour';
@@ -53,7 +54,7 @@ export default function MoreScreen() {
   };
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={[styles.content, wide && styles.contentWide]}>
+      <TourScrollView contentContainerStyle={[styles.content, wide && styles.contentWide]}>
         <Text style={font.title}>Más</Text>
         {user && (
           <TourTarget id="more-user">
@@ -89,7 +90,7 @@ export default function MoreScreen() {
             </Pressable>
           </Card>
         </TourTarget>
-      </ScrollView>
+      </TourScrollView>
     </SafeAreaView>
   );
 }

@@ -8,8 +8,12 @@ import { TOURS, type TourId, type TourStep } from '@/features/tour/lib/tours';
 
 export type ActiveTour = { id: TourId; steps: TourStep[]; index: number };
 export type Rect = { x: number; y: number; width: number; height: number };
+/** Lets the tour scroll the screen that contains a target, so steps far down can be shown. */
+export type Scroller = { scrollBy: (dy: number) => void };
 
-const targets = new Map<string, RefObject<View | null>>();
+type Target = { ref: RefObject<View | null>; scroller: Scroller | null };
+
+const targets = new Map<string, Target>();
 let active: ActiveTour | null = null;
 const listeners = new Set<() => void>();
 
@@ -18,16 +22,21 @@ function emit(next: ActiveTour | null) {
   listeners.forEach((l) => l());
 }
 
-export function registerTarget(id: string, ref: RefObject<View | null>) {
-  targets.set(id, ref);
+export function registerTarget(id: string, ref: RefObject<View | null>, scroller: Scroller | null) {
+  const target = { ref, scroller };
+  targets.set(id, target);
   return () => {
-    if (targets.get(id) === ref) targets.delete(id);
+    if (targets.get(id) === target) targets.delete(id);
   };
+}
+
+export function targetScroller(id: string) {
+  return targets.get(id)?.scroller ?? null;
 }
 
 /** Window coordinates of a registered target, or null when it is not on screen. */
 export function measureTarget(id: string) {
-  const view = targets.get(id)?.current;
+  const view = targets.get(id)?.ref.current;
   if (!view) return Promise.resolve(null);
   return new Promise<Rect | null>((resolve) => {
     view.measureInWindow((x, y, width, height) => resolve(width > 0 && height > 0 ? { x, y, width, height } : null));
