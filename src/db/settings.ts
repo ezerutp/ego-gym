@@ -27,6 +27,9 @@ export type Settings = {
   telegramDailySummary: boolean;
   /** Local day (YYYY-MM-DD) of the last Telegram summary, so it goes out once a day. */
   telegramLastSummary: string;
+  /** SHA-256 hash and salt of the offline recovery code shown once to the admin. */
+  recoveryCodeHash: string;
+  recoveryCodeSalt: string;
   adminPhone: string;
   templateExpiring: string;
   templateExpired: string;
@@ -57,6 +60,8 @@ export const DEFAULT_SETTINGS: Settings = {
   telegramSendReports: true,
   telegramDailySummary: true,
   telegramLastSummary: '',
+  recoveryCodeHash: '',
+  recoveryCodeSalt: '',
   adminPhone: '',
   templateExpiring: 'Hola {nombre}, te recordamos que tu membresía en {gimnasio} vence el {fecha}. ¡Te esperamos para renovarla! 💪',
   templateExpired: 'Hola {nombre}, tu membresía en {gimnasio} venció el {fecha}. ¡Te esperamos para renovarla y seguir entrenando! 💪',

@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Card, Field, IconCircle, Pill, Stepper, type IconName } from '@/components/ui';
 import { AdminOnly } from '@/features/auth/components/AdminOnly';
+import { formatRecoveryCode, generateRecoveryCode, storeRecoveryCode } from '@/features/auth/lib/recovery';
 import { session } from '@/features/auth/lib/session';
 import { BackupError, exportBackup, restoreBackup } from '@/features/backup/backup';
 import { getSettings, saveSettings, type Settings } from '@/db/settings';
@@ -46,6 +47,8 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
   const [form, setForm] = useState(initial);
   const [saving, setSaving] = useState(false);
   const [backingUp, setBackingUp] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState<string | null>(null);
+  const [generatingCode, setGeneratingCode] = useState(false);
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) => setForm((f) => ({ ...f, [key]: value }));
   const dirty = JSON.stringify(form) !== JSON.stringify(initial);
 
@@ -106,6 +109,26 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
     if (!(await sendTestNotification())) Alert.alert('Permiso requerido', 'Activa las notificaciones de EGO Gym en los ajustes del teléfono.');
   };
 
+  const generateCode = () =>
+    Alert.alert('Generar código nuevo', 'El código anterior dejará de funcionar. ¿Continuar?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Generar',
+        onPress: async () => {
+          setGeneratingCode(true);
+          try {
+            const code = await generateRecoveryCode();
+            await storeRecoveryCode(db, code);
+            setRecoveryCode(formatRecoveryCode(code));
+          } catch (e) {
+            Alert.alert('No se pudo generar el código', String(e));
+          } finally {
+            setGeneratingCode(false);
+          }
+        },
+      },
+    ]);
+
   return (
     <SafeAreaView style={styles.safe} edges={[]}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
@@ -157,6 +180,13 @@ function SettingsForm({ initial, stats, onSaved }: FormProps) {
             <Row label="Bloquear tras minutos sin uso" hint={form.autoLockMinutes === 0 ? 'Nunca se bloquea sola' : 'Al bloquearse se pide de nuevo el PIN'}>
               <Stepper value={form.autoLockMinutes} onChange={(v) => set('autoLockMinutes', v)} min={0} max={120} />
             </Row>
+            <Text style={font.small}>
+              Si alguien olvida su PIN, el código de recuperación permite crear uno nuevo sin internet. Se mostró una sola vez al configurar la app; si se perdió, genera uno nuevo aquí.
+            </Text>
+            {recoveryCode && (
+              <Text style={font.h3}>Nuevo código: {recoveryCode} (anótalo ahora, no se volverá a mostrar)</Text>
+            )}
+            <Button title="Generar código nuevo" icon="key-outline" variant="secondary" loading={generatingCode} onPress={generateCode} />
           </Section>
 
           <Section icon="search" title="Fuentes de productos" subtitle="Dónde buscar un código nuevo">
