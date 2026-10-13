@@ -8,6 +8,11 @@ Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo m�
 - **Comparar exige el periodo anterior.** El resumen consulta los mismos totales en el periodo previo de igual longitud para el % de cada KPI; sin datos previos no se muestra insignia.
 - **Solo el resumen lleva gráficos.** Los reportes de ventas, cobros y clientes mantienen su formato de tablas.
 
+## 2026-10-13 — Confirmación de cobros y último admin
+
+- **El guard del último admin ya existía y se probó.** `wouldRemoveLastAdmin` bloquea degradar o desactivar al único administrador (verificado contra SQLite en 5 casos). Lo nuevo es que el formulario lo muestra de frente: la opción Recepción y el interruptor Activo se deshabilitan con su motivo, en vez de fallar recién al guardar.
+- **Confirmar solo cuando se mueve dinero.** Registrar pago e Inscribir/Renovar muestran un diálogo con cliente, monto, método y deuda restante; inscribir sin cobrar guarda directo porque no hay pago.
+
 ## 2026-10-13 — Actualizaciones desde GitHub
 
 - **Sin Play Store ni EAS Update.** El APK se publica como asset de un release de GitHub y la app lo instala con el instalador del sistema (`expo-intent-launcher`, acción VIEW sobre el `content://` de `getContentUriAsync`). EAS Update no sirve: necesita su servidor y solo actualiza JS, no cambios nativos.
