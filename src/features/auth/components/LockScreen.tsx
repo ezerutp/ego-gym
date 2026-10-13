@@ -10,6 +10,7 @@ import { getSettings } from '@/db/settings';
 import { PinPad } from '@/features/auth/components/PinPad';
 import { UserAvatar } from '@/features/auth/components/UserAvatar';
 import { createUser, listUsers, PIN_LENGTH, ROLE_LABELS, verifyPin, type User } from '@/features/auth/db/users';
+import { formatRecoveryCode, generateRecoveryCode, storeRecoveryCode } from '@/features/auth/lib/recovery';
 import { session } from '@/features/auth/lib/session';
 import { useIsWide } from '@/lib/layout';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
@@ -170,11 +171,19 @@ function FirstAdminSetup({ gymName, onCreated }: { gymName: string; onCreated: (
   const styles = useStyles();
   const { colors, font } = useTheme();
   const db = useSQLiteContext();
-  const [step, setStep] = useState<'name' | 'pin' | 'confirm'>('name');
+  const [step, setStep] = useState<'name' | 'pin' | 'confirm' | 'recovery'>('name');
   const [name, setName] = useState('');
   const [pin, setPin] = useState('');
   const [firstPin, setFirstPin] = useState('');
   const [error, setError] = useState('');
+  const [pendingAdmin, setPendingAdmin] = useState<{ id: number; name: string } | null>(null);
+  const [recoveryCode, setRecoveryCode] = useState('');
+
+  const enter = () => {
+    if (!pendingAdmin) return;
+    session.signIn({ id: pendingAdmin.id, name: pendingAdmin.name, role: 'admin' });
+    onCreated();
+  };
 
   const onPin = async (value: string) => {
     if (step === 'pin') {
@@ -198,8 +207,17 @@ function FirstAdminSetup({ gymName, onCreated }: { gymName: string; onCreated: (
       setPin('');
       return Alert.alert('No se pudo crear el administrador', String(e));
     }
-    session.signIn({ id, name: name.trim(), role: 'admin' });
-    onCreated();
+    try {
+      const code = await generateRecoveryCode();
+      await storeRecoveryCode(db, code);
+      setRecoveryCode(code);
+    } catch (e) {
+      setPin('');
+      return Alert.alert('No se pudo crear el código de recuperación', String(e));
+    }
+    setPendingAdmin({ id, name: name.trim() });
+    setPin('');
+    setStep('recovery');
   };
 
   return (
@@ -217,6 +235,15 @@ function FirstAdminSetup({ gymName, onCreated }: { gymName: string; onCreated: (
                 <Field label="Nombre" value={name} onChangeText={setName} placeholder="Ej.: Carlos Pérez" autoFocus />
                 <Button title="Continuar" icon="arrow-forward" disabled={name.trim().length < 2} onPress={() => setStep('pin')} />
               </>
+            ) : step === 'recovery' ? (
+              <View style={{ alignItems: 'center', gap: spacing.md }}>
+                <Text style={font.h2}>Anota tu código de recuperación</Text>
+                <Text style={[font.small, { textAlign: 'center' }]}>
+                  Si olvidas tu PIN, este código te dejará crear uno nuevo sin internet. No se volverá a mostrar.
+                </Text>
+                <Text style={[font.h2, { letterSpacing: 2 }]}>{formatRecoveryCode(recoveryCode)}</Text>
+                <Button title="Lo anoté, entrar" icon="checkmark" onPress={enter} />
+              </View>
             ) : (
               <View style={{ alignItems: 'center', gap: spacing.md }}>
                 <Text style={font.h2}>{step === 'pin' ? 'Crea tu PIN' : 'Confirma tu PIN'}</Text>
