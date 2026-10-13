@@ -2,6 +2,13 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-13 — Recuperación de PIN
+
+- **Dos vías, una siempre offline.** El código de recuperación (8 caracteres, formato XXXX-XXXX) vive como hash + sal en `settings`, así que no requiere migración y funciona sin internet. El código de Telegram (6 dígitos, tabla `pin_resets` en la migración v8) es de un solo uso, vence en 10 minutos y se agota en 3 intentos fallidos.
+- **Telegram solo envía.** La tablet genera el código localmente y lo manda con el `sendText` existente al chat del admin; no se necesita leer mensajes del bot (`getUpdates`), lo que evita polling y webhooks. Si Telegram no está configurado, el error lo dice y ofrece la vía offline.
+- **El código de recuperación se muestra una sola vez.** Al crear el admin inicial, la sesión se abre recién después de anotarlo; si la app se cierra antes, el admin ya existe y el código quedó guardado. Solo se guarda el hash: en Ajustes no se puede ver, solo generar uno nuevo (el anterior deja de funcionar).
+- **Correo y WhatsApp descartados.** Sin backend no hay envío automático de correos, y WhatsApp exige que el usuario toque enviar (`wa.me`/compartir), así que no sirve para un desbloqueo.
+
 ## 2026-10-12 — Guía interactiva
 
 - **Sin librerías.** La guía es propia (`src/features/tour/`), para no sumar dependencias nativas. Los elementos se marcan con `<TourTarget id="…">`, que registra una vista (con `collapsable={false}` para que exista en Android y se pueda medir). La capa `TourOverlay` está en el layout raíz, entre el `Stack` y el bloqueo, y mide el elemento con `measureInWindow`.
