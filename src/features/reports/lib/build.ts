@@ -32,7 +32,7 @@ export type ReportData = {
   gymName: string;
   periodStart: string;
   periodEnd: string;
-  highlights: { label: string; value: string }[];
+  highlights: { label: string; value: string; delta?: number | null }[];
   tables: ReportTable[];
   series?: SummarySeries;
 };
@@ -185,12 +185,18 @@ async function buildSummary(db: SQLiteDatabase, start: string, end: string): Pro
   ]);
   const income = sales.total + payments.total;
   const prevIncome = prevSales.total + prevPayments.total;
+  const deltas = {
+    income: pct(income, prevIncome),
+    sales: pct(sales.total, prevSales.total),
+    payments: pct(payments.total, prevPayments.total),
+    members: pct(joined.length, prevNew?.n ?? 0),
+  };
   return {
     highlights: [
-      { label: 'Ingresos totales', value: money(income) },
-      { label: 'Membresías cobradas', value: `${money(payments.total)} (${payments.count})` },
-      { label: 'Ventas de la tienda', value: `${money(sales.total)} (${sales.count})` },
-      { label: 'Clientes registrados', value: String(joined.length) },
+      { label: 'Ingresos totales', value: money(income), delta: deltas.income },
+      { label: 'Membresías cobradas', value: `${money(payments.total)} (${payments.count})`, delta: deltas.payments },
+      { label: 'Ventas de la tienda', value: `${money(sales.total)} (${sales.count})`, delta: deltas.sales },
+      { label: 'Clientes registrados', value: String(joined.length), delta: deltas.members },
       { label: 'Membresías por vencer', value: String(attention.expiring.length) },
       { label: 'Deuda pendiente', value: `${money(debts.total)} (${debts.members} clientes)` },
     ],
@@ -210,12 +216,7 @@ async function buildSummary(db: SQLiteDatabase, start: string, end: string): Pro
     ],
     series: {
       daily,
-      deltas: {
-        income: pct(income, prevIncome),
-        sales: pct(sales.total, prevSales.total),
-        payments: pct(payments.total, prevPayments.total),
-        members: pct(joined.length, prevNew?.n ?? 0),
-      },
+      deltas,
       amounts: [...payAmounts, ...saleAmounts].map((r) => r.v),
       byMethod,
     },
