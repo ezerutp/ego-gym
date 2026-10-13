@@ -20,7 +20,8 @@
       "package": "pe.egogym.app",
       "permissions": [
         "CAMERA",
-        "POST_NOTIFICATIONS"
+        "POST_NOTIFICATIONS",
+        "REQUEST_INSTALL_PACKAGES"
       ],
       "versionCode": 1
     },
