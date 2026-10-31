@@ -2,6 +2,15 @@
 
 Hallazgos técnicos y decisiones tomadas durante el desarrollo, con fecha. Lo más reciente va arriba.
 
+## 2026-10-31 — EGO-18 Etiquetas para productos sin código
+
+- **Formato `EGO` + 10 dígitos en Code128.** Los códigos reales de tienda (EAN/UPC) son solo números, así que el prefijo con letras nunca choca con un producto escaneado y se distingue a simple vista. El escáner ya leía Code128, por lo que no hace falta otra librería. Se revisa en la base que el código generado no exista.
+- **Codificador propio.** `code128.ts` (sin dependencias) usa el set B para el texto y el set C para los 10 dígitos finales (dos por barra), lo que deja la etiqueta en 154 módulos (~0,3 mm por módulo en 5 cm). Se probó decodificando con zxing códigos EGO, EAN-13 y alfanuméricos, y la hoja A4 generada a 300 dpi.
+- **PDF con `expo-print` e imagen con `react-native-view-shot`.** El PDF dibuja las barras en SVG; la imagen captura la vista previa (`BarcodeLabel`, barras como `View`), que siempre es blanca como la boleta. Etiqueta de 50 × 30 mm, 3 × 8 por hoja A4.
+- **Dígito verificador propio en los códigos EGO.** Son `EGO` + 9 dígitos al azar + 1 verificador (módulo 10 como en EAN). Detecta cualquier dígito cambiado y la mayoría de dígitos vecinos intercambiados (probado con 2000 códigos), sobre todo al escribir el código a mano.
+- **Lecturas falsas de etiquetas EGO.** En las pruebas la cámara a veces devolvía otro código. Code128 ya trae su control (módulo 103) y el lector lo verifica, pero el escáner también tiene activados Codabar, Code39 e ITF, que no exigen control: una etiqueta borrosa o torcida podía salir como dígitos al azar en esos formatos. Ahora una lectura con "EGO" solo se acepta si es Code128 y su verificador cuadra, y Codabar, Code39 e ITF necesitan 3 lecturas iguales seguidas (la cámara lee varias por segundo, así que un código real no se nota más lento).
+- **La entrada manual del escáner acepta letras** (en mayúsculas) para poder escribir un código EGO cuando la cámara no lo lee.
+
 ## 2026-10-13 — Ajustes y actualizaciones
 
 - **El import root de `getContentUriAsync` ya no solo avisa: lanza error.** El mensaje pide migrar al API nuevo o importar de `expo-file-system/legacy`; como `File` no expone esa función, se importa del legacy y el instalador vuelve a abrir.

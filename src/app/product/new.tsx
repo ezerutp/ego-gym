@@ -13,6 +13,7 @@ import { adjustStock, createProduct, getProductByBarcode, updateProduct, type Pr
 import { getSettings } from '@/db/settings';
 import { money, parseMoney } from '@/lib/format';
 import { rescheduleAlerts } from '@/lib/notifications';
+import { isEgoBarcode } from '@/features/store/lib/egoBarcode';
 import { downloadProductImage, lookupBarcode, persistLocalImage, type RemoteProduct } from '@/features/store/lib/productLookup';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
@@ -24,7 +25,7 @@ export default function NewProductScreen() {
   const { code } = useLocalSearchParams<{ code: string }>();
   const db = useSQLiteContext();
   const [step, setStep] = useState<Step>({ kind: 'loading' });
-  const [notFound, setNotFound] = useState<'none' | 'not_found' | 'no_sources'>('none');
+  const [notFound, setNotFound] = useState<'none' | 'not_found' | 'no_sources' | 'generated'>('none');
 
   // Form state
   const [name, setName] = useState('');
@@ -48,6 +49,10 @@ export default function NewProductScreen() {
         setPrice(existing.price != null ? existing.price.toFixed(2) : '');
         setExpiry(existing.expiry_date);
         return setStep({ kind: 'existing', product: existing });
+      }
+      if (isEgoBarcode(code)) {
+        setNotFound('generated');
+        return setStep({ kind: 'form' });
       }
       const { productSources } = await getSettings(db);
       if (cancelled) return;
@@ -79,6 +84,7 @@ export default function NewProductScreen() {
   const finish = (productId: number) => {
     rescheduleAlerts(db).catch(() => {});
     Alert.alert('¡Listo!', 'El producto se guardó en tu almacén.', [
+      ...(isEgoBarcode(code) ? [{ text: 'Imprimir etiqueta', onPress: () => router.replace({ pathname: '/label/[id]', params: { id: productId } }) }] : []),
       { text: 'Ver producto', onPress: () => router.replace({ pathname: '/product/[id]', params: { id: productId } }) },
       { text: 'Escanear otro', onPress: () => router.replace({ pathname: '/scan', params: { mode: 'add' } }) },
     ]);
@@ -203,9 +209,13 @@ export default function NewProductScreen() {
                 <View style={styles.notice}>
                   <Ionicons name="information-circle" size={22} color={colors.info} />
                   <Text style={{ flex: 1, color: colors.info, fontSize: 14 }}>
-                    {notFound === 'no_sources'
-                      ? 'La búsqueda en bases públicas está desactivada en Ajustes. Completa los datos y toma una foto del producto.'
-                      : 'No encontramos este código en las bases públicas. Completa los datos y toma una foto del producto.'}
+                    {
+                      {
+                        no_sources: 'La búsqueda en bases públicas está desactivada en Ajustes. Completa los datos y toma una foto del producto.',
+                        not_found: 'No encontramos este código en las bases públicas. Completa los datos y toma una foto del producto.',
+                        generated: `Le asignamos el código ${code} a este producto. Al guardarlo podrás imprimir su etiqueta para pegarla.`,
+                      }[notFound]
+                    }
                   </Text>
                 </View>
               )}

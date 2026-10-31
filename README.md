@@ -4,7 +4,7 @@ App Android (React Native + Expo) para gestionar un gimnasio desde una tablet en
 
 ## Estado
 
-- **Tienda** (heredada de Bodega Scan): ingreso de productos escaneando el código de barras, búsqueda automática en [Open Food Facts](https://world.openfoodfacts.org), [Open Beauty Facts](https://world.openbeautyfacts.org) y [Open Products Facts](https://world.openproductsfacts.org), almacén con filtros, venta con carrito y boleta para compartir por WhatsApp, alertas de poco stock y vencimiento con notificaciones locales.
+- **Tienda** (heredada de Bodega Scan): ingreso de productos escaneando el código de barras, búsqueda automática en [Open Food Facts](https://world.openfoodfacts.org), [Open Beauty Facts](https://world.openbeautyfacts.org) y [Open Products Facts](https://world.openproductsfacts.org), productos sin código de barras (la app les asigna un código `EGO` e imprime su etiqueta de 5 × 3 cm, una sola o una hoja A4 de 24, en PDF o imagen), almacén con filtros, venta con carrito y boleta para compartir por WhatsApp, alertas de poco stock y vencimiento con notificaciones locales.
 - **Navegación**: en tablet, barra lateral con Inicio, Clientes, Tienda y Más, y el botón **Cobrar**; en teléfono, la misma navegación como barra inferior. La Tienda tiene sus propias secciones: Resumen, Almacén, Vender y Alertas.
 - **Ajustes**: datos del gimnasio (salen en la boleta), alertas del almacén, notificaciones y bases públicas de productos. El botón **Sincronizar base de datos** está visible pero deshabilitado ("Próximamente").
 - **Usuarios y permisos**: al abrir la app se elige el usuario y se ingresa su PIN de 4 dígitos. El primer arranque crea al administrador y muestra un código de recuperación para restablecer PIN olvidados sin internet. Desde el bloqueo, con "¿Olvidaste tu PIN?" se crea un PIN nuevo con ese código o con un código enviado al Telegram del admin. La recepción no accede a Ajustes ni a Usuarios ni puede eliminar registros. La tablet se bloquea sola tras los minutos sin uso configurados, y cada venta guarda quién la hizo.
@@ -28,6 +28,7 @@ src/
       store/           Resumen, Almacén, Vender y Alertas de la tienda
     scan.tsx           Cámara (modo ingreso / modo venta)
     product/           Alta, detalle, edición y ajuste de stock
+    label/[id].tsx     Etiqueta con código de barras para imprimir
     receipt/[id].tsx   Boleta compartible
     settings.tsx       Ajustes
     users/             Gestión de usuarios (solo admin)

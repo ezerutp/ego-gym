@@ -46,6 +46,7 @@ export default function RootLayout() {
             <Stack.Screen name="scan" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
             <Stack.Screen name="product/new" options={{ title: 'Nuevo producto' }} />
             <Stack.Screen name="product/[id]" options={{ title: 'Producto' }} />
+            <Stack.Screen name="label/[id]" options={{ title: 'Etiqueta' }} />
             <Stack.Screen name="receipt/[id]" options={{ title: 'Boleta' }} />
             <Stack.Screen name="member/[id]" options={{ title: 'Cliente' }} />
             <Stack.Screen name="member/form" options={{ title: 'Cliente' }} />
