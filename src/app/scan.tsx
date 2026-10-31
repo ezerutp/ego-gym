@@ -9,11 +9,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, ProductThumb } from '@/components/ui';
 import { getProductByBarcode } from '@/features/store/db/products';
+import { EGO_PREFIX, generateEgoBarcode, isEgoBarcode } from '@/features/store/lib/egoBarcode';
 import { cart, cartCount, cartTotal, useCart } from '@/features/store/lib/cart';
 import { money } from '@/lib/format';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
 const BARCODE_TYPES: BarcodeType[] = ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'code39', 'code93', 'itf14', 'codabar'];
+// These formats have no mandatory check digit, so a blurry or skewed label can decode as random digits.
+const WEAK_TYPES = new Set(['codabar', 'code39', 'itf14']);
+const WEAK_CONFIRMATIONS = 3;
 const FRAME_W = 280;
 const FRAME_H = 180;
 
@@ -34,6 +38,7 @@ export default function ScanScreen() {
   const hideToast = useCallback(() => setToast(null), []);
   const busy = useRef(false);
   const lastScan = useRef<{ code: string; at: number }>({ code: '', at: 0 });
+  const weakRead = useRef({ code: '', count: 0 });
 
   useEffect(() => {
     if (permission && !permission.granted && permission.canAskAgain) requestPermission();
@@ -83,6 +88,40 @@ export default function ScanScreen() {
     }
   };
 
+  const onScan = (type: string, data: string) => {
+    const code = data.trim();
+    if (code.toUpperCase().includes(EGO_PREFIX)) {
+      if (type === 'code128' && isEgoBarcode(code)) handleCode(code);
+      return;
+    }
+    if (WEAK_TYPES.has(type)) {
+      const read = weakRead.current;
+      weakRead.current = { code, count: read.code === code ? read.count + 1 : 1 };
+      if (weakRead.current.count < WEAK_CONFIRMATIONS) return;
+    }
+    handleCode(code);
+  };
+
+  const submitManual = () => {
+    if (!manualCode) return setManualOpen(false);
+    if (manualCode.includes(EGO_PREFIX) && !isEgoBarcode(manualCode)) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return Alert.alert('Código EGO no válido', 'Revisa los dígitos: un código EGO tiene 10 números después de EGO y el último sirve para verificarlo.');
+    }
+    handleCode(manualCode);
+    setManualCode('');
+  };
+
+  const registerWithoutBarcode = async () => {
+    if (busy.current) return;
+    busy.current = true;
+    try {
+      router.replace({ pathname: '/product/new', params: { code: await generateEgoBarcode(db) } });
+    } finally {
+      busy.current = false;
+    }
+  };
+
   if (!permission) return <View style={styles.black} />;
 
   if (!permission.granted) {
@@ -104,7 +143,7 @@ export default function ScanScreen() {
         facing="back"
         enableTorch={torch}
         barcodeScannerSettings={{ barcodeTypes: BARCODE_TYPES }}
-        onBarcodeScanned={manualOpen ? undefined : (r) => handleCode(r.data)}
+        onBarcodeScanned={manualOpen ? undefined : (r) => onScan(r.type, r.data)}
       />
       <ScanOverlay />
 
@@ -131,21 +170,15 @@ export default function ScanScreen() {
                 <TextInput
                   autoFocus
                   value={manualCode}
-                  onChangeText={(t) => setManualCode(t.replace(/\D/g, ''))}
+                  onChangeText={(t) => setManualCode(t.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
                   placeholder="Escribe el código"
                   placeholderTextColor={colors.faint}
-                  keyboardType="number-pad"
+                  autoCapitalize="characters"
+                  autoCorrect={false}
                   style={styles.manualInput}
-                  onSubmitEditing={() => manualCode && handleCode(manualCode)}
+                  onSubmitEditing={submitManual}
                 />
-                <Pressable
-                  style={styles.manualGo}
-                  onPress={() => {
-                    if (!manualCode) return setManualOpen(false);
-                    handleCode(manualCode);
-                    setManualCode('');
-                  }}
-                >
+                <Pressable style={styles.manualGo} onPress={submitManual}>
                   <Ionicons name={manualCode ? 'arrow-forward' : 'close'} size={22} color={colors.white} />
                 </Pressable>
               </View>
@@ -153,6 +186,13 @@ export default function ScanScreen() {
               <Pressable style={styles.manualLink} onPress={() => setManualOpen(true)}>
                 <Ionicons name="keypad-outline" size={18} color={colors.white} />
                 <Text style={styles.manualLinkText}>Ingresar código manualmente</Text>
+              </Pressable>
+            )}
+
+            {!isSell && !manualOpen && (
+              <Pressable style={styles.noCodeBtn} onPress={registerWithoutBarcode}>
+                <Ionicons name="pricetag-outline" size={18} color={colors.white} />
+                <Text style={styles.manualLinkText}>Producto sin código de barras</Text>
               </Pressable>
             )}
 
@@ -278,6 +318,7 @@ const useStyles = makeStyles(({ colors }) =>
     bottom: { padding: spacing.lg, gap: spacing.md },
     manualLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12 },
     manualLinkText: { color: colors.white, fontWeight: '600', fontSize: 15 },
+    noCodeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: radius.lg, backgroundColor: 'rgba(255,255,255,0.18)' },
     manualRow: { flexDirection: 'row', gap: spacing.sm },
     manualInput: { flex: 1, backgroundColor: colors.surface, color: colors.ink, borderRadius: radius.md, paddingHorizontal: spacing.lg, fontSize: 18, height: 54, letterSpacing: 1 },
     manualGo: { width: 54, height: 54, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
