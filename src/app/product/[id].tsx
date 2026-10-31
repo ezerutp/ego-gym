@@ -179,6 +179,14 @@ export default function ProductDetailScreen() {
           </Card>
         )}
 
+        <Button
+          title="Imprimir etiqueta"
+          icon="barcode-outline"
+          variant="secondary"
+          onPress={() => router.push({ pathname: '/label/[id]', params: { id: product.id } })}
+          style={{ marginTop: spacing.md }}
+        />
+
         <SectionTitle title="Ajustar stock" />
         <Card style={{ gap: spacing.md }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
