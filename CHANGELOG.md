@@ -12,7 +12,8 @@ Cambios visibles de la app por etapa. Durante una fase, los cambios se acumulan 
 - Reporte general con gráficos: el PDF del resumen incluye variación vs el periodo anterior, ingreso diario en barras, tendencia acumulada, histograma de montos y cobros por método.
 - El repositorio de actualizaciones se configura en un diálogo aparte con solo Editar y Buscar actualización.
 - Productos sin código de barras: en Ingresar productos, "Producto sin código de barras" le asigna un código que empieza con EGO. Al guardarlo, o desde la ficha del producto con "Imprimir etiqueta", se imprime su etiqueta de 5 × 3 cm con borde redondeado para recortar: una sola o una hoja A4 de 24, en PDF o como imagen.
-- El código se puede escribir a mano con letras, para ingresar los códigos EGO.
+- El código se puede escribir a mano con letras, para ingresar los códigos EGO. Si un dígito está mal, la app lo avisa en vez de buscar otro producto.
+- El escáner ignora lecturas dudosas (códigos borrosos o torcidos leídos como otro formato), para que no aparezca un código distinto al de la etiqueta.
 
 ### Corregido
 

@@ -132,7 +132,7 @@ Cada fase se entrega en uno o más PRs `EGO-XX` hacia `staging`. Al cerrar una f
 - [x] Cobros con confirmación y rol protegido (EGO-14): Registrar pago e Inscribir/Renovar piden confirmar el monto antes de guardar; al editar al único administrador, el rol Recepción y la desactivación aparecen bloqueados
 - [x] Reporte general profesional (EGO-15): el PDF del resumen trae KPIs con variación vs el periodo anterior, barras apiladas de ingreso diario, tendencia acumulada, histograma de montos y dona por método de pago
 - [x] Ajustes y actualizaciones (EGO-16): repositorio de GitHub en un diálogo con solo Editar y Buscar actualización, y corrección del instalador del APK
-- [x] Productos sin código de barras (EGO-18): el escáner genera un código `EGO` + 10 dígitos (Code128) y la etiqueta de 5 × 3 cm se imprime o se comparte en PDF (una o una hoja A4 de 24) o como imagen
+- [x] Productos sin código de barras (EGO-18): el escáner genera un código `EGO` + 10 dígitos con verificador (Code128), el escáner descarta lecturas falsas y la etiqueta de 5 × 3 cm se imprime o se comparte en PDF (una o una hoja A4 de 24) o como imagen
 - [ ] Probar la impresión y lectura de etiquetas EGO en la tablet
 - [ ] Probar la guía en la tablet en horizontal y vertical
 - [ ] Probar la actualización desde GitHub en la tablet (permiso de apps desconocidas, descarga e instalación)
