@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, ProductThumb } from '@/components/ui';
 import { getProductByBarcode } from '@/features/store/db/products';
+import { generateEgoBarcode } from '@/features/store/lib/egoBarcode';
 import { cart, cartCount, cartTotal, useCart } from '@/features/store/lib/cart';
 import { money } from '@/lib/format';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
@@ -83,6 +84,16 @@ export default function ScanScreen() {
     }
   };
 
+  const registerWithoutBarcode = async () => {
+    if (busy.current) return;
+    busy.current = true;
+    try {
+      router.replace({ pathname: '/product/new', params: { code: await generateEgoBarcode(db) } });
+    } finally {
+      busy.current = false;
+    }
+  };
+
   if (!permission) return <View style={styles.black} />;
 
   if (!permission.granted) {
@@ -131,10 +142,11 @@ export default function ScanScreen() {
                 <TextInput
                   autoFocus
                   value={manualCode}
-                  onChangeText={(t) => setManualCode(t.replace(/\D/g, ''))}
+                  onChangeText={(t) => setManualCode(t.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
                   placeholder="Escribe el código"
                   placeholderTextColor={colors.faint}
-                  keyboardType="number-pad"
+                  autoCapitalize="characters"
+                  autoCorrect={false}
                   style={styles.manualInput}
                   onSubmitEditing={() => manualCode && handleCode(manualCode)}
                 />
@@ -153,6 +165,13 @@ export default function ScanScreen() {
               <Pressable style={styles.manualLink} onPress={() => setManualOpen(true)}>
                 <Ionicons name="keypad-outline" size={18} color={colors.white} />
                 <Text style={styles.manualLinkText}>Ingresar código manualmente</Text>
+              </Pressable>
+            )}
+
+            {!isSell && !manualOpen && (
+              <Pressable style={styles.noCodeBtn} onPress={registerWithoutBarcode}>
+                <Ionicons name="pricetag-outline" size={18} color={colors.white} />
+                <Text style={styles.manualLinkText}>Producto sin código de barras</Text>
               </Pressable>
             )}
 
@@ -278,6 +297,7 @@ const useStyles = makeStyles(({ colors }) =>
     bottom: { padding: spacing.lg, gap: spacing.md },
     manualLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12 },
     manualLinkText: { color: colors.white, fontWeight: '600', fontSize: 15 },
+    noCodeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: radius.lg, backgroundColor: 'rgba(255,255,255,0.18)' },
     manualRow: { flexDirection: 'row', gap: spacing.sm },
     manualInput: { flex: 1, backgroundColor: colors.surface, color: colors.ink, borderRadius: radius.md, paddingHorizontal: spacing.lg, fontSize: 18, height: 54, letterSpacing: 1 },
     manualGo: { width: 54, height: 54, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
