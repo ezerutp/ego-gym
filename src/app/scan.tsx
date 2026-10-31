@@ -9,12 +9,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, ProductThumb } from '@/components/ui';
 import { getProductByBarcode } from '@/features/store/db/products';
-import { generateEgoBarcode } from '@/features/store/lib/egoBarcode';
+import { EGO_PREFIX, generateEgoBarcode, isEgoBarcode } from '@/features/store/lib/egoBarcode';
 import { cart, cartCount, cartTotal, useCart } from '@/features/store/lib/cart';
 import { money } from '@/lib/format';
 import { makeStyles, radius, spacing, useTheme } from '@/theme';
 
 const BARCODE_TYPES: BarcodeType[] = ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'code39', 'code93', 'itf14', 'codabar'];
+// These formats have no mandatory check digit, so a blurry or skewed label can decode as random digits.
+const WEAK_TYPES = new Set(['codabar', 'code39', 'itf14']);
+const WEAK_CONFIRMATIONS = 3;
 const FRAME_W = 280;
 const FRAME_H = 180;
 
@@ -35,6 +38,7 @@ export default function ScanScreen() {
   const hideToast = useCallback(() => setToast(null), []);
   const busy = useRef(false);
   const lastScan = useRef<{ code: string; at: number }>({ code: '', at: 0 });
+  const weakRead = useRef({ code: '', count: 0 });
 
   useEffect(() => {
     if (permission && !permission.granted && permission.canAskAgain) requestPermission();
@@ -84,6 +88,30 @@ export default function ScanScreen() {
     }
   };
 
+  const onScan = (type: string, data: string) => {
+    const code = data.trim();
+    if (code.toUpperCase().includes(EGO_PREFIX)) {
+      if (type === 'code128' && isEgoBarcode(code)) handleCode(code);
+      return;
+    }
+    if (WEAK_TYPES.has(type)) {
+      const read = weakRead.current;
+      weakRead.current = { code, count: read.code === code ? read.count + 1 : 1 };
+      if (weakRead.current.count < WEAK_CONFIRMATIONS) return;
+    }
+    handleCode(code);
+  };
+
+  const submitManual = () => {
+    if (!manualCode) return setManualOpen(false);
+    if (manualCode.includes(EGO_PREFIX) && !isEgoBarcode(manualCode)) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return Alert.alert('Código EGO no válido', 'Revisa los dígitos: un código EGO tiene 10 números después de EGO y el último sirve para verificarlo.');
+    }
+    handleCode(manualCode);
+    setManualCode('');
+  };
+
   const registerWithoutBarcode = async () => {
     if (busy.current) return;
     busy.current = true;
@@ -115,7 +143,7 @@ export default function ScanScreen() {
         facing="back"
         enableTorch={torch}
         barcodeScannerSettings={{ barcodeTypes: BARCODE_TYPES }}
-        onBarcodeScanned={manualOpen ? undefined : (r) => handleCode(r.data)}
+        onBarcodeScanned={manualOpen ? undefined : (r) => onScan(r.type, r.data)}
       />
       <ScanOverlay />
 
@@ -148,16 +176,9 @@ export default function ScanScreen() {
                   autoCapitalize="characters"
                   autoCorrect={false}
                   style={styles.manualInput}
-                  onSubmitEditing={() => manualCode && handleCode(manualCode)}
+                  onSubmitEditing={submitManual}
                 />
-                <Pressable
-                  style={styles.manualGo}
-                  onPress={() => {
-                    if (!manualCode) return setManualOpen(false);
-                    handleCode(manualCode);
-                    setManualCode('');
-                  }}
-                >
+                <Pressable style={styles.manualGo} onPress={submitManual}>
                   <Ionicons name={manualCode ? 'arrow-forward' : 'close'} size={22} color={colors.white} />
                 </Pressable>
               </View>
